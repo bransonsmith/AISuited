@@ -4,11 +4,15 @@ public class RoundParticipant extends HandParticipant {
 	
 	private RoundStatus roundStatus;
 	
-	public RoundParticipant(HandParticipant hp) {
+	public RoundParticipant(Seat s) {
 		roundStatus = RoundStatus.Unsettled;
-		handStatus = hp.getStatus();
-		seat = hp.getSeat();
-		holeCards = hp.getHoleCards();
+		seat = s;
 	}
-	
+
+	public void setRoundStatus(RoundStatus _roundStatus) {
+		roundStatus = _roundStatus;
+	}
+	public RoundStatus getRoundStatus() {
+		return roundStatus;
+	}
 }

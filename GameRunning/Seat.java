@@ -1,19 +1,52 @@
 package GameRunning;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import GameObjects.Card;
 import Players.Player;
 
 public class Seat {
 
 	private int chips;
 	private int number;
+	private List<Card> holeCards;
 	private Player player;
+	private HandStatus handStatus;
 	
-	public Seat(int _number) {
+	public Seat(int _number, Player _player) {
 		setNumber(_number);
+		setPlayer(_player);
+		setHoleCards(new ArrayList<Card>());
+		setHandStatus(HandStatus.NeverInvolved);
+	}
+	
+	public String toString() {
+		String str = "" + number + ". ";
+		str += getPlayerName();
+		str += " [" + chips + "] ";
+		str += " (";
+		for (Card c: holeCards) {
+			str += c;
+		}
+		str += ")";
+		return str;
 	}
 	
 	public boolean isEmpty() {
-		return player != null;
+		return player == null;
+	}
+	
+	public boolean isReadyForNextHand() {
+		return !isEmpty() && chips > 0;
+	}
+	
+	public void clearHand() {
+		holeCards = new ArrayList<Card>();
+	}
+	
+	public void addCardToHand(Card c) {
+		holeCards.add(c);
 	}
 	
 	public void emptySeat() {
@@ -41,6 +74,13 @@ public class Seat {
 		return amountCharged;
 	}
 	
+	public String getPlayerName() {
+		if (player == null) {
+			return "<EMPTY>";
+		}
+		return player.getName();
+	}
+	
 	public void setPlayer(Player _player) {
 		player = _player;
 	}
@@ -53,5 +93,21 @@ public class Seat {
 	}
 	public int getNumber() {
 		return number;
+	}
+
+	public List<Card> getHoleCards() {
+		return holeCards;
+	}
+
+	public void setHoleCards(List<Card> _holeCards) {
+		holeCards = _holeCards;
+	}
+
+	public HandStatus getHandStatus() {
+		return handStatus;
+	}
+
+	public void setHandStatus(HandStatus _handStatus) {
+		handStatus = _handStatus;
 	}
 }

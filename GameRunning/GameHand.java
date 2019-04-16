@@ -14,14 +14,16 @@ public class GameHand {
 	private Deck deck;
 	private int roundIndex = 0;
 	private int pot;
+	private GameRunner game;
 	private List<Card> communityCards;
 	
-	public GameHand(Deck _deck, List<HandParticipant> _participants) {
+	public GameHand(GameRunner _game, Deck _deck, List<HandParticipant> _participants) {
 		setParticipants(_participants);
 		setRoundSettingsToHoldEmRoundSettings();
 		roundIndex = 0;
 		pot = 0;
 		setDeck(_deck);
+		game = _game;
 		communityCards = new ArrayList<Card>();
 	}
 	
@@ -47,7 +49,7 @@ public class GameHand {
 	}
 	
 	public void commenceRound(RoundSettings roundSettings, List<RoundParticipant> roundParticipants) {
-		HandRound round = new HandRound(roundSettings.getName(), roundSettings.getNumCardsToDeal(), roundParticipants, deck, communityCards);
+		HandRound round = new HandRound(roundSettings.getName(), roundSettings.getNumCardsToDeal(), roundParticipants, deck, communityCards, game, this);
 		round.commenceRound();
 	}
 	

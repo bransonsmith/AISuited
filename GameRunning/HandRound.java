@@ -1,35 +1,89 @@
 package GameRunning;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import Common.Logger;
 import GameObjects.Card;
-import GameObjects.Deck;
 
 public class HandRound {
 	private List<RoundParticipant> participants;
 	private List<Card> dealtCards;
-	private List<Card> preexistingCards;
 	private int currentBet;
 	private String name;
-	private Deck deck;
+	private int seatNumToAct;
+	private GameRunner game;
+	private int numCardsToDeal;
 	
-	public HandRound(String _name, int _numCardsToDeal, List<RoundParticipant> _participants, Deck _deck, List<Card> _preexistingCards) {
+	public HandRound(String _name, int _numCardsToDeal, List<RoundParticipant> _participants, GameRunner _game) {
 		setName(_name);
-		setDealtCards(_numCardsToDeal);
 		setParticipants(_participants);
-		setDeck(_deck);
-		setPreexistingCards(_preexistingCards);
+		setNumCardsToDeal(_numCardsToDeal);
+		game = _game;
 		currentBet = 0;
+		setSeatNumToAct(0);
 	}
 	
-	public void commenceRound() {
-		// Unsettle Participants
+	private void setNumCardsToDeal(int _numCardsToDeal) {
+		numCardsToDeal = _numCardsToDeal;
+	}
+
+	public void commence() {
+		Logger.log("Commencing " + name + ".");
+		unsettleAll();
+		setUpSpecificRound();
 		// Find first person to act
 		// until all players settled,
 		//	present actingPlayer with context
 		//	get playerResponse
 		// 	react to playerResponse
+	}
+	
+	private void unsettleAll() {
+		for (RoundParticipant p: participants) {
+			p.setRoundStatus(RoundStatus.Unsettled);
+		}
+	}
+	
+	private void setUpSpecificRound() {
+		if (name.equals("preflop")) {
+			game.chargeBlinds();
+			setSeatNumToAct(getUTGPosition());
+		} else {
+			setSeatNumToAct(getSBPosition());
+		}
+
+	}
+	
+	private int getBBPosition() {
+		return game.getBbPosition();
+	}
+	
+	private int getSBPosition() {
+		return game.getSbPosition();
+	}
+	
+	private int getUTGPosition() {
+		int utgPos = getPositionAfter(getBBPosition());
+		return utgPos;
+	}
+	
+	private int getPositionAfter(int seatNum) {
+		List<Integer> allSeatNumbers = getAllSeatNumbers();
+		Collections.sort(allSeatNumbers);
+		if (allSeatNumbers.indexOf(seatNum) == allSeatNumbers.size() - 1) {
+			return allSeatNumbers.get(0);
+		}
+		return allSeatNumbers.get(allSeatNumbers.indexOf(seatNum) + 1);
+	}
+	
+	private List<Integer> getAllSeatNumbers() {
+		List<Integer> allSeatNums = new ArrayList<Integer>();
+		for (RoundParticipant rp: participants) {
+			allSeatNums.add(rp.getSeat().getNumber());
+		}
+		return allSeatNums;
 	}
 	
 	public String toString() {
@@ -60,19 +114,6 @@ public class HandRound {
 	public void setDealtCards(List<Card> _dealtCards) {
 		dealtCards = _dealtCards;
 	}
-	public void setDealtCards(int numCardsToDeal) {
-		dealtCards = new ArrayList<Card>();
-		for (int i = 0; i < numCardsToDeal; i++) {
-			dealtCards.add(deck.getNextCard());
-		}
-	}
-	
-	public List<Card> getAllCards() {
-		List<Card> cards = new ArrayList<Card>();
-		cards.addAll(preexistingCards);
-		cards.addAll(dealtCards);
-		return cards;
-	}
 	
 	public int getCurrentBet() {
 		return currentBet;
@@ -81,17 +122,13 @@ public class HandRound {
 		currentBet = _currentBet;
 	}
 
-	public Deck getDeck() {
-		return deck;
-	}
-	public void setDeck(Deck _deck) {
-		deck = _deck;
+	public int getSeatNumToAct() {
+		return seatNumToAct;
 	}
 
-	public List<Card> getPreexistingCards() {
-		return preexistingCards;
+	public void setSeatNumToAct(int seatNumToAct) {
+		Logger.log("Seat #" + seatNumToAct + " will be acting next.");
+		this.seatNumToAct = seatNumToAct;
 	}
-	public void setPreexistingCards(List<Card> _preexistingCards) {
-		preexistingCards = _preexistingCards;
-	}
+
 }
