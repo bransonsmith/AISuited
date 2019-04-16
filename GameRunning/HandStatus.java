@@ -1,0 +1,5 @@
+package GameRunning;
+
+public enum HandStatus {
+	NeverInvolved, Folded, Active
+}
