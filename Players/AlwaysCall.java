@@ -1,18 +1,18 @@
 package Players;
 
-import GameRunning.Choices;
 import GameRunning.DecisionContext;
 import GameRunning.HoldEmChoice;
 
-public class AlwaysFold extends Player {
+public class AlwaysCall extends Player {
 
-	public AlwaysFold(String _name, String ownerName) {
+	public AlwaysCall(String _name, String ownerName) {
 		super(_name, ownerName);
 	}
 
 	@Override
 	public HoldEmChoice getDecision(DecisionContext decisionContext) {
-		return new HoldEmChoice(Choices.Fold);
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

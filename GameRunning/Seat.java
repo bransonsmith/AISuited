@@ -23,13 +23,27 @@ public class Seat {
 	
 	public String toString() {
 		String str = "" + number + ". ";
-		str += getPlayerName();
-		str += " [" + chips + "] ";
-		str += " (";
-		for (Card c: holeCards) {
-			str += c;
+		if (handStatus == HandStatus.Active) {
+			str += "*Active* ";
 		}
-		str += ")";
+		else if (handStatus == HandStatus.Folded) {
+			str += "*Folded* ";
+		}
+		else if (handStatus == HandStatus.AllIn) {
+			str += "*ALL IN* ";
+		}
+		else if (handStatus == HandStatus.Loser) {
+			str += "*LOSER * ";
+		}
+		else {
+			str += "*??????* ";
+		}
+		str += String.format("%-15s | ", getPlayerName());
+		str += String.format("%-8s", String.format("[%d]", chips));
+		String cardStr = "(";
+		for (Card c: holeCards) cardStr += c;
+		cardStr += ")";
+		str += String.format("%-7s", cardStr);
 		return str;
 	}
 	
@@ -109,5 +123,9 @@ public class Seat {
 
 	public void setHandStatus(HandStatus _handStatus) {
 		handStatus = _handStatus;
+	}
+
+	public boolean isActive() {
+		return handStatus == HandStatus.Active || handStatus == HandStatus.AllIn;
 	}
 }

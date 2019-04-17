@@ -8,7 +8,7 @@ import GameObjects.Card;
 import GameObjects.Deck;
 
 public class GameHand {
-
+/*********
 	private List<HandParticipant> participants;
 	private List<RoundSettings> roundSettings;
 	private Deck deck;
@@ -80,4 +80,5 @@ public class GameHand {
 	public void setDeck(Deck _deck) {
 		deck = _deck;
 	}
+	**********/
 }

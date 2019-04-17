@@ -4,15 +4,15 @@ import GameRunning.Choices;
 import GameRunning.DecisionContext;
 import GameRunning.HoldEmChoice;
 
-public class AlwaysFold extends Player {
+public class AlwaysAllIn extends Player {
 
-	public AlwaysFold(String _name, String ownerName) {
+	public AlwaysAllIn(String _name, String ownerName) {
 		super(_name, ownerName);
 	}
 
 	@Override
 	public HoldEmChoice getDecision(DecisionContext decisionContext) {
-		return new HoldEmChoice(Choices.Fold);
+		return new HoldEmChoice(Choices.Raise, decisionContext.getMyInfo().getChips());
 	}
 
 }

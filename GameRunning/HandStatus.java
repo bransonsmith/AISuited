@@ -1,5 +1,5 @@
 package GameRunning;
 
 public enum HandStatus {
-	NeverInvolved, Folded, Active
+	NeverInvolved, Folded, Active, AllIn, Loser
 }

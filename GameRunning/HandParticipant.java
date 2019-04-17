@@ -7,17 +7,9 @@ import GameObjects.Card;
 public class HandParticipant {
 
 	protected Seat seat;
-	protected HandStatus handStatus;
 	protected List<Card> holeCards;
 	protected int chipsPutInPot; // how many chips can they win (if a side-pot is needed)
-	
-	public HandStatus getStatus() {
-		return handStatus;
-	}
-	public void setStatus(HandStatus _handStatus) {
-		handStatus = _handStatus;
-	}
-	
+
 	public int getChipsPutInPot() {
 		return chipsPutInPot;
 	}

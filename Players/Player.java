@@ -1,5 +1,6 @@
 package Players;
 
+import GameRunning.DecisionContext;
 import GameRunning.HoldEmChoice;
 
 public abstract class Player {
@@ -7,7 +8,7 @@ public abstract class Player {
 	private String name; 
 	private String ownerName;
 	
-	public abstract HoldEmChoice getDecision();
+	public abstract HoldEmChoice getDecision(DecisionContext decisionContext);
 	
 	public Player(String _name, String ownerName) {
 		setName(_name);

@@ -3,6 +3,7 @@ package GameRunning;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 
 import Common.Logger;
 import GameObjects.Card;
@@ -33,11 +34,106 @@ public class HandRound {
 		Logger.log("Commencing " + name + ".");
 		unsettleAll();
 		setUpSpecificRound();
-		// Find first person to act
-		// until all players settled,
-		//	present actingPlayer with context
-		//	get playerResponse
-		// 	react to playerResponse
+		playOutRound();
+	}
+	
+	private void playOutRound() {
+		while (anyUnsettled()) {		
+			RoundParticipant choiceMaker = getParticipantWithSeatNumber(seatNumToAct);
+			DecisionContext decisionContext = getDecisionContext(choiceMaker);
+			if (isLastActiveParticipant(choiceMaker)) {
+				choiceMaker.setRoundStatus(RoundStatus.Settled);
+			} else {
+				HoldEmChoice choice = getPlayerChoice(choiceMaker, decisionContext);
+				reactToChoice(choice, choiceMaker);
+				Logger.log(this.toString());
+			}
+		}
+	}
+	
+	private boolean isLastActiveParticipant(RoundParticipant choiceMaker) {
+		return game.isLastActiveSeat(choiceMaker.getSeat());
+	}
+
+	private void reactToChoice(HoldEmChoice choice, RoundParticipant choiceMaker) {
+		int amountCharged = 0;
+		if (choice.getType() == Choices.Fold) {
+			Logger.log("" + choiceMaker.getSeat().getPlayerName() + " folded.");
+			choiceMaker.getSeat().setHandStatus(HandStatus.Folded);
+			choiceMaker.setRoundStatus(RoundStatus.Settled);
+			seatNumToAct = getPositionAfter(seatNumToAct);
+		}
+		if (choice.getType() == Choices.Call) {
+			Logger.log("" + choiceMaker.getSeat().getPlayerName() + " called.");
+			amountCharged = game.charge(choiceMaker.getSeat(), choice.getAmount());
+			if (choice.getAmount() >= choiceMaker.getSeat().getChips()) {
+				Logger.log("" + choiceMaker.getSeat().getPlayerName() + " is ALL IN!");
+				choiceMaker.getSeat().setHandStatus(HandStatus.AllIn);
+			}
+			choiceMaker.setRoundStatus(RoundStatus.Settled);
+			seatNumToAct = getPositionAfter(seatNumToAct);
+		}
+		if (choice.getType() == Choices.Check) {
+			Logger.log("" + choiceMaker.getSeat().getPlayerName() + " checked.");
+			choiceMaker.setRoundStatus(RoundStatus.Settled);
+			seatNumToAct = getPositionAfter(seatNumToAct);
+		}
+		if (choice.getType() == Choices.Raise) {
+			Logger.log("" + choiceMaker.getSeat().getPlayerName() + " raised.");
+			if (choice.getAmount() >= choiceMaker.getSeat().getChips()) {
+				amountCharged = game.charge(choiceMaker.getSeat(), choice.getAmount());
+				Logger.log("" + choiceMaker.getSeat().getPlayerName() + " is ALL IN!");
+				choiceMaker.getSeat().setHandStatus(HandStatus.AllIn);
+			} else if (choice.getAmount() < currentBet) {
+				amountCharged = game.charge(choiceMaker.getSeat(), currentBet * 2);
+			}
+			choiceMaker.setRoundStatus(RoundStatus.Settled);
+			unsettleOtherActivePlayers(choiceMaker);
+			seatNumToAct = getPositionAfter(seatNumToAct);
+		}
+		currentBet = Math.max(currentBet, amountCharged);
+	}
+	
+	private void unsettleOtherActivePlayers(RoundParticipant choiceMaker) {
+		for (RoundParticipant rp: participants) {
+			if (!rp.equals(choiceMaker) && 
+				rp.getSeat().isActive() &&
+				rp.getSeat().getHandStatus() != HandStatus.AllIn) {
+				Logger.log("\tUnsettling " + rp.getSeat().getPlayerName());
+				rp.setRoundStatus(RoundStatus.Unsettled);
+			} else {
+				rp.setRoundStatus(RoundStatus.Settled);
+			}
+		}
+	}
+
+	private HoldEmChoice getPlayerChoice(RoundParticipant choiceMaker, DecisionContext decisionContext) {
+		HoldEmChoice decision = choiceMaker.getSeat().getPlayer().getDecision(decisionContext);
+		return decision;
+	}
+
+	private RoundParticipant getParticipantWithSeatNumber(int num) {
+		for (RoundParticipant rp: participants) {
+			if (rp.getSeat().getNumber() == num) {
+				return rp;
+			}
+		}
+		return null;
+	}
+
+	private DecisionContext getDecisionContext(RoundParticipant decisionMaker) {
+		DecisionContext dContext = new DecisionContext(decisionMaker);
+		return dContext;
+	}
+	
+	private boolean anyUnsettled() {
+		for (RoundParticipant p: participants) {
+			if (p.getRoundStatus() == RoundStatus.Unsettled) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	private void unsettleAll() {
@@ -49,13 +145,44 @@ public class HandRound {
 	private void setUpSpecificRound() {
 		if (name.equals("preflop")) {
 			game.chargeBlinds();
+			currentBet = game.getOptions().getBb();
 			setSeatNumToAct(getUTGPosition());
 		} else {
+			currentBet = 0;
 			setSeatNumToAct(getSBPosition());
+			setSettleStates();
+			dealCommunityCards();
+			String cardStr = "";
+			for (Card c: dealtCards) {
+				cardStr += c + " ";
+			}
+			Logger.log(" | dealt cards");
+			Logger.log(" | " + cardStr + "\n");
 		}
 
 	}
 	
+	private void dealCommunityCards() {
+		List<Card> cards = new ArrayList<Card>();
+		for (int i = 0; i < numCardsToDeal; i++) {
+			cards.add(game.getNextDealtCard());
+		}
+		setDealtCards(cards);
+		game.dealToBoard(dealtCards);
+	}
+
+	private void setSettleStates() {
+		for (RoundParticipant rp: participants) {
+			HandStatus rpStat = rp.getSeat().getHandStatus();
+			if (rpStat == HandStatus.Active) {
+				rp.setRoundStatus(RoundStatus.Unsettled);
+			} else {
+				rp.setRoundStatus(RoundStatus.Settled);
+			}
+		}
+		
+	}
+
 	private int getBBPosition() {
 		return game.getBbPosition();
 	}
@@ -87,10 +214,21 @@ public class HandRound {
 	}
 	
 	public String toString() {
-		String str = "";
+		String str = "\n--HandRound--\t";
 		String cardStr = "";
-		for (Card c: dealtCards) cardStr += c + " ";
-		str += String.format("%s-8: Bet: %d-6 Cards: [%s]", name, currentBet, cardStr);
+		if (participants != null) {
+			for (RoundParticipant p: participants) {
+				if (p.getRoundStatus() == RoundStatus.Unsettled) {
+					str += "-u-";
+				}
+				str += p.getSeat().getPlayerName() + ", ";
+			}
+		}
+		str += "\n";
+		if (dealtCards != null) {
+			for (Card c: dealtCards) cardStr += c + " ";
+		}
+		str += String.format("%-8s- Bet: %-6d Cards: [%s]", name, currentBet, cardStr);
 		return str;
 	}
 	
