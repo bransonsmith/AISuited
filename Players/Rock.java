@@ -36,7 +36,7 @@ public class Rock extends Player {
 	}
 	
 	private boolean isHighAce(List<Card> myHoleCards) {
-		Collections.sort(myHoleCards);
+		Collections.sort(myHoleCards, Collections.reverseOrder());
 		return 	myHoleCards.get(0).getAceVal() == 14 &&  
 				myHoleCards.get(1).getAceVal() >= 12;
 	}

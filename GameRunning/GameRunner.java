@@ -3,8 +3,10 @@ package GameRunning;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 import Common.Logger;
 import GameObjects.Card;
@@ -22,13 +24,13 @@ public class GameRunner {
 	private int bbPosition;
 	private int sbPosition;
 	private int dealerPosition;
-	private int pot;
+	private Pot pot;
 	private Deck deck;
 	private List<Card> board;
 	private HandRound currentRound;
 	
 	public GameRunner(int numSeats) throws Exception {
-		pot = 0;
+		pot = new Pot();
 		dealerPosition = 0;
 		sbPosition = 0;
 		bbPosition = 0;
@@ -57,8 +59,8 @@ public class GameRunner {
 	public String toString() {
 		String str = "";
 		str += "---------------------------------------------------------------------------------------------\n";
-		str += "| POT = " + pot + "\n";
-		str += "| Board = [";
+		str += "|   POT = " + pot.getTotal() + "\n";
+		str += "| BOARD = [";
 		for (Card c: board) {
 			str += c.toString() + " ";
 		}
@@ -96,7 +98,7 @@ public class GameRunner {
 		Scanner s = new Scanner(System.in);
 		
 		deck.refresh();
-		pot = 0;
+		pot.reset();
 		board = new ArrayList<Card>();
 		
 		activatePlayers();
@@ -106,6 +108,7 @@ public class GameRunner {
 		Logger.log("\n == PREFLOP ==");
 		// s.nextLine();
 		playPreFlop();
+		handleExcessBets();
 		Logger.log(this.toString() + "\n");
 		
 		if (areMoreThanOneActiveSeats()) {
@@ -140,6 +143,17 @@ public class GameRunner {
 		advancePositions();
 	}
 
+	private void handleExcessBets() {
+		Map<Seat, Integer> excessBets = pot.getExcessBets();
+		for (Map.Entry<Seat, Integer> excessBet : excessBets.entrySet()) {
+			int excessToAdd = pot.reduceContribution(excessBet.getKey(), excessBet.getValue());
+			if (excessToAdd > 0) {
+				Logger.log("Giving excess from bet back to " + excessBet.getKey().getPlayerName() + " -> " + excessToAdd + " chips.");
+				excessBet.getKey().modChips(excessToAdd);
+			}
+		}
+	}
+
 	private void activatePlayers() {
 		for (Seat s: seats) {
 			if (s.isReadyForNextHand()) {
@@ -147,25 +161,22 @@ public class GameRunner {
 			}
 		}
 	}
+	
+	private List<Seat> getSeatsReadyForNextHand() {
+		List<Seat> readySeats = new ArrayList<Seat>();
+		for (Seat s: seats) {
+			if (s.isReadyForNextHand()) {
+				readySeats.add(s);
+			}
+		}
+		return readySeats;
+	}
 
 	private void wrapUpHand() {
-		splitPotBetweenRemainingActiveSeats();
+		//payOutWinnings();
+		//splitPotBetweenRemainingActiveSeats();
 	}
 
-	private void splitPotBetweenRemainingActiveSeats() {
-		List<Seat> activeSeats = getActiveSeats();
-		int shareSize = pot / activeSeats.size();
-		for (Seat ac : activeSeats) {
-			giveFromPot(ac, shareSize);
-		}
-	}
-
-	private void giveFromPot(Seat ac, int shareSize) {
-		int amountGiven = Math.min(shareSize, pot);
-		pot -= amountGiven;
-		ac.modChips(amountGiven);
-		Logger.log(ac.getPlayerName() + " won " + amountGiven + " chips!");
-	}
 
 	private List<Seat> getActiveSeats() {
 		List<Seat> activeSeats = new ArrayList<Seat>();
@@ -187,7 +198,6 @@ public class GameRunner {
 		return count >= 2;
 	}
 
-	
 	private List<RoundParticipant> getRoundParticipants(String roundName) {
 		if (roundName.equals("preflop")) {
 			for (Seat s: seats) {
@@ -227,35 +237,51 @@ public class GameRunner {
 	}
 
 	private void playShowdown() throws HandEvaluatorCardCountProblem, KickerFillProblem {
-		List<Card> cards;
-		List<HandEvaluation> winningEvals = new ArrayList<HandEvaluation>();
-		List<Seat> winningSeats = new ArrayList<Seat>();
-		
+		// Sort all hands that made it to showdown (desc)
+		// Start at top,
+		// While pot.getTotal has money, pay all hands of next evaluation value
 		String boardStr = "";
 		for(Card c: board) boardStr += c + " ";
 		Logger.log("Board = [" + boardStr + "]");
+		
+		Map<HandEvaluation, List<Seat>> tieredEvals = new TreeMap<HandEvaluation, List<Seat>>();
 		for (Seat seat: getActiveSeats()) {
 			
-			cards = new ArrayList<Card>();
+			List<Card> cards = new ArrayList<Card>();
 			cards.addAll(seat.getHoleCards());
 			cards.addAll(board);
 			HandEvaluation eval = HandEvaluator.getHoldEmHandEvaluation(cards);
 			
-			if (winningEvals.isEmpty()) {
-				winningEvals.add(eval);
-				winningSeats.add(seat);
-			} else if (winningEvals.get(0).compareTo(eval) == 0) {
-				winningEvals.add(eval);
-				winningSeats.add(seat);
-			} else if (winningEvals.get(0).compareTo(eval) < 0) {
-				winningEvals = new ArrayList<HandEvaluation>(); 
-				winningSeats = new ArrayList<Seat>();
-				winningEvals.add(eval);
-				winningSeats.add(seat);
+			List<Seat> newVal = new ArrayList<Seat>();
+			if (tieredEvals.containsKey(eval)) {
+				newVal = tieredEvals.get(eval);
 			}
-			
-			Logger.log(seat + " -> " + eval);
+			newVal.add(seat);
+			tieredEvals.put(eval, newVal);
 		}
+		
+		int tierNum = 1;
+		for (Map.Entry<HandEvaluation, List<Seat>> tier: tieredEvals.entrySet()) {
+			
+			// Sort tier by contribution (asc)
+			List<Seat> tierSortedByContribution = getSortedByContribution(tier.getValue());
+			
+			// While still seats to collect
+				// Gather for lowest
+				// Split amongst remaining in tier
+			
+			
+			
+			for (Seat seat: tier.getValue()) {
+				List<Card> cards = new ArrayList<Card>();
+				cards.addAll(seat.getHoleCards());
+				cards.addAll(board);
+				HandEvaluation freshEval = HandEvaluator.getHoldEmHandEvaluation(cards);
+				Logger.log(tierNum + ". " + seat + " -> " + freshEval);
+			}
+			tierNum++;
+		}
+
 		
 		Logger.log("\n-----HAND WINNERS-----");
 		for (int i = 0; i < winningEvals.size(); i++) {
@@ -264,6 +290,27 @@ public class GameRunner {
 		Logger.log("");
 		deactivateAllExcept(winningSeats);
 		
+	}
+
+	public List<Seat> getSortedByContribution(List<Seat> tier) {
+		List<Seat> sorted = new ArrayList<Seat>();
+		for (Seat s : tier) {
+			boolean inserted = false;
+			for (int i = 0; i < sorted.size(); i++) {
+				if (pot.getContributions().containsKey(sorted.get(i)) && pot.getContributions().containsKey(s)) {
+					int sortedAtICont = pot.getContributions().get(sorted.get(i));
+					int sInTierCont = pot.getContributions().get(s);
+					if (sortedAtICont >= sInTierCont) {
+						sorted.add(i, s);
+						inserted = true;
+					}
+				}
+			}
+			if (!inserted) {
+				sorted.add(sorted.size(), s);
+			}
+		}
+		return sorted;
 	}
 
 	private void deactivateAllExcept(List<Seat> winningSeats) {
@@ -292,10 +339,27 @@ public class GameRunner {
 		s.addCardToHand(deck.getNextCard());
 	}
 	
+	private int getReadyPositionAfter(int seatNum) {
+		List<Integer> allReadySeatNumbers = getAllReadySeatNumbers();
+		Collections.sort(allReadySeatNumbers);
+		int xOfSeatNum = allReadySeatNumbers.indexOf(seatNum);
+		if (xOfSeatNum >= allReadySeatNumbers.size() - 1) 
+			return allReadySeatNumbers.get(0);
+		return allReadySeatNumbers.get(xOfSeatNum + 1);
+	}
+	
+	private List<Integer> getAllReadySeatNumbers() {
+		List<Integer> readySeatNums = new ArrayList<Integer>();
+		for (Seat s: getSeatsReadyForNextHand()) {
+			readySeatNums.add(s.getNumber());
+		}
+		return readySeatNums;
+	}
+	
 	private void advancePositions() {
-		dealerPosition = getPositionAfter(dealerPosition);
-		sbPosition = getPositionAfter(dealerPosition);
-		bbPosition = getPositionAfter(sbPosition);
+		dealerPosition = getReadyPositionAfter(dealerPosition);
+		sbPosition = getReadyPositionAfter(dealerPosition);
+		bbPosition = getReadyPositionAfter(sbPosition);
 	}
 	
 	public String getSeatStrInfo(Seat s) {
@@ -375,7 +439,7 @@ public class GameRunner {
 			message += " / " + amount;
 		}
 		Logger.log(message + ".");
-		pot += charged;
+		pot.addContribution(s, charged);
 		return charged;
 	}
 	
