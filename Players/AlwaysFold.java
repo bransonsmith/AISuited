@@ -2,7 +2,7 @@ package Players;
 
 import GameRunning.Decisions.Choices;
 import GameRunning.Decisions.DecisionContext;
-import GameRunning.Decisions.HoldEmChoice;
+import GameRunning.Decisions.HEDecision;
 
 public class AlwaysFold extends Player {
 
@@ -11,8 +11,8 @@ public class AlwaysFold extends Player {
 	}
 
 	@Override
-	public HoldEmChoice getDecision(DecisionContext decisionContext) {
-		return new HoldEmChoice(Choices.Fold);
+	public HEDecision getDecision(DecisionContext decisionContext) {
+		return new HEDecision(Choices.Fold);
 	}
 
 }

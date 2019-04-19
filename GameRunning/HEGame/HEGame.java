@@ -7,6 +7,7 @@ import java.util.Random;
 
 import Common.Logger;
 import GameRunning.Seat;
+import GameRunning.HEGame.Hands.HEHand;
 import Players.Player;
 
 public class HEGame {
@@ -16,12 +17,18 @@ public class HEGame {
 	private int bbPosition;
 	private int dPosition;
 	private List<Seat> seats;
+	private HEHand hand;
 	
-	public HEGame(List<Player> players) throws Exception {
+	public HEGame(List<Seat> _seats, HEOptions _options) throws Exception {
 		setOptions(new HEOptions(1000, 50, 100));
+		setSeats(_seats);
 		if (seats.size() > 0) {
 			setRandomDealerAndBlinds();
 		}
+	}
+	
+	public void startNewHand() {
+		hand = new HEHand(this);
 	}
 	
 	public void setRandomDealerAndBlinds() {
@@ -35,9 +42,6 @@ public class HEGame {
 		dPosition = allSeatNumbers.get(i);
 		sbPosition = getPositionAfter(dPosition);
 		bbPosition = getPositionAfter(sbPosition);
-		Logger.log("First Dealer Position was randomly selected as seat #" + dPosition + ".");
-		Logger.log("SB seat #" + sbPosition + ".");
-		Logger.log("BB seat #" + bbPosition + ".");
 	}
 	
 	private List<Integer> getAllSeatNumbers() {
@@ -98,6 +102,10 @@ public class HEGame {
 	}
 	public void setBBPosition(int _bbPosition) {
 		bbPosition = _bbPosition;
+	}
+
+	public int getUTGPosition() {
+		return getPositionAfter(bbPosition);
 	}
 
 	

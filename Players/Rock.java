@@ -6,7 +6,7 @@ import java.util.List;
 import GameObjects.Card;
 import GameRunning.Decisions.Choices;
 import GameRunning.Decisions.DecisionContext;
-import GameRunning.Decisions.HoldEmChoice;
+import GameRunning.Decisions.HEDecision;
 
 public class Rock extends Player {
 
@@ -15,13 +15,13 @@ public class Rock extends Player {
 	}
 
 	@Override
-	public HoldEmChoice getDecision(DecisionContext decisionContext) {
+	public HEDecision getDecision(DecisionContext decisionContext) {
 		List<Card> myHoleCards = decisionContext.getMyInfo().getHoleCards();
 		if (isEliteHand(myHoleCards)) {
-			return new HoldEmChoice(Choices.Raise, decisionContext.getMyInfo().getChips());
+			return new HEDecision(Choices.Raise, decisionContext.getMyInfo().getChips());
 		}
 		else {
-			return new HoldEmChoice(Choices.Fold);
+			return new HEDecision(Choices.Fold);
 		}
 	}
 

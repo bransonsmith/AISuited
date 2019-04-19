@@ -2,7 +2,7 @@ package Players;
 
 import GameRunning.Decisions.Choices;
 import GameRunning.Decisions.DecisionContext;
-import GameRunning.Decisions.HoldEmChoice;
+import GameRunning.Decisions.HEDecision;
 
 public class AlwaysAllIn extends Player {
 
@@ -11,8 +11,8 @@ public class AlwaysAllIn extends Player {
 	}
 
 	@Override
-	public HoldEmChoice getDecision(DecisionContext decisionContext) {
-		return new HoldEmChoice(Choices.Raise, decisionContext.getMyInfo().getChips());
+	public HEDecision getDecision(DecisionContext decisionContext) {
+		return new HEDecision(Choices.Raise, decisionContext.getMyInfo().getChips());
 	}
 
 }

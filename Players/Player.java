@@ -1,14 +1,14 @@
 package Players;
 
 import GameRunning.Decisions.DecisionContext;
-import GameRunning.Decisions.HoldEmChoice;
+import GameRunning.Decisions.HEDecision;
 
 public abstract class Player {
 	
 	private String name; 
 	private String ownerName;
 	
-	public abstract HoldEmChoice getDecision(DecisionContext decisionContext);
+	public abstract HEDecision getDecision(DecisionContext decisionContext);
 	
 	public Player(String _name, String ownerName) {
 		setName(_name);

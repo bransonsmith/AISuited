@@ -1,7 +1,7 @@
 package Players;
 
 import GameRunning.Decisions.DecisionContext;
-import GameRunning.Decisions.HoldEmChoice;
+import GameRunning.Decisions.HEDecision;
 
 public class AlwaysCall extends Player {
 
@@ -10,7 +10,7 @@ public class AlwaysCall extends Player {
 	}
 
 	@Override
-	public HoldEmChoice getDecision(DecisionContext decisionContext) {
+	public HEDecision getDecision(DecisionContext decisionContext) {
 		// TODO Auto-generated method stub
 		return null;
 	}

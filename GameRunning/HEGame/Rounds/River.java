@@ -17,5 +17,14 @@ public class River extends HERound {
 	protected void setName() {
 		name = "River";
 	}
-
+	
+	@Override
+	protected void setCurrentBet() {
+		currentBet = 0;
+	}
+	
+	@Override
+	protected void setFirstToAct() {
+		actingPosition = hand.getGame().getSBPosition();
+	}
 }

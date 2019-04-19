@@ -18,4 +18,14 @@ public class Flop extends HERound {
 		name = "Flop";
 	}
 
+	@Override
+	protected void setCurrentBet() {
+		currentBet = 0;
+	}
+
+	@Override
+	protected void setFirstToAct() {
+		actingPosition = hand.getGame().getSBPosition();
+	}
+
 }
