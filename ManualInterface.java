@@ -40,9 +40,15 @@ public class ManualInterface {
 		
 		System.out.println(game.toString());
 		
-		for (int handNum = 1; game.getSeatsWithChipsCount() > 1; handNum++) {
+		int handNum;
+		for (handNum = 1; game.getSeatsWithChipsCount() > 1; handNum++) {
 			Logger.log("~ Hand Number " + handNum + " ~");
 			game.startNewHand();
+		}
+		for (Seat s: game.getSeats()) {
+			if (s.getChips() > 0) {
+				Logger.log(s.getPlayerName() + " won the game in " + handNum + " hands!");
+			}
 		}
 		
 		/*

@@ -1,6 +1,8 @@
 package GameRunning;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Pot {
@@ -82,6 +84,27 @@ public class Pot {
 		return excessBets;
 	}
 	
+	public List<Seat> getSortedByContribution(List<Seat> tier) {
+		List<Seat> sorted = new ArrayList<Seat>();
+		for (Seat s : tier) {
+			boolean inserted = false;
+			for (int i = 0; i < sorted.size() && !inserted; i++) {
+				if (contributions.containsKey(sorted.get(i)) && contributions.containsKey(s)) {
+					int sortedAtICont = contributions.get(sorted.get(i));
+					int sInTierCont = contributions.get(s);
+					if (sortedAtICont >= sInTierCont) {
+						sorted.add(i, s);
+						inserted = true;
+					}
+				}
+			}
+			if (!inserted) {
+				sorted.add(sorted.size(), s);
+			}
+		}
+		return sorted;
+	}
+	
 	public String toString() {
 		String str = "";
 		
@@ -91,6 +114,13 @@ public class Pot {
 		}
 		
 		return str;
+	}
+
+	public int getContributionsTotal(Seat s) {
+		if (contributions.containsKey(s)) {
+			return contributions.get(s);
+		}
+		return 0;
 	}
 	
 }

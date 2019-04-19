@@ -34,19 +34,57 @@ public class HandRound {
 		Logger.log("Commencing " + name + ".");
 		unsettleAll();
 		setUpSpecificRound();
+		Logger.log("Seat #" + seatNumToAct + " will act first this round.");
 		playOutRound();
 	}
 	
+	private void unsettleAll() {
+		Logger.log("Unsettling all participants...");
+		for (RoundParticipant p: participants) {
+			p.setRoundStatus(RoundStatus.Unsettled);
+		}
+	}
+	
+	private void setUpSpecificRound() {
+		if (name.equals("preflop")) {
+			game.chargeBlinds();
+			currentBet = game.getOptions().getBb();
+			setSeatNumToAct(getUTGPosition());
+			unsettleOtherActivePlayersThatArentAllIn(getParticipantWithSeatNumber(getBBPosition()));
+		} else {
+			currentBet = 0;
+			setSeatNumToAct(getSBPosition());
+			setSettleStates();
+			dealCommunityCards();
+			String cardStr = "";
+			for (Card c: dealtCards) {
+				cardStr += c + " ";
+			}
+			Logger.log(" | dealt cards");
+			Logger.log(" | " + cardStr + "\n");
+		}
+
+	}
+	
 	private void playOutRound() {
-		while (anyUnsettled()) {		
+		while (anyUnsettled()) {	
 			RoundParticipant choiceMaker = getParticipantWithSeatNumber(seatNumToAct);
-			DecisionContext decisionContext = getDecisionContext(choiceMaker);
-			if (isLastActiveParticipant(choiceMaker)) {
-				choiceMaker.setRoundStatus(RoundStatus.Settled);
+			if (choiceMaker != null) {
+				if (choiceMaker.getRoundStatus() == RoundStatus.Unsettled) {
+				
+					DecisionContext decisionContext = getDecisionContext(choiceMaker);
+					if (isLastActiveParticipant(choiceMaker)) {
+						choiceMaker.setRoundStatus(RoundStatus.Settled);
+					} else if (choiceMaker.getRoundStatus() == RoundStatus.Unsettled) {
+							HoldEmChoice choice = getPlayerChoice(choiceMaker, decisionContext);
+							reactToChoice(choice, choiceMaker);
+							Logger.log(this.toString());
+						}
+				} else {
+					choiceMaker.setRoundStatus(RoundStatus.Unsettled);
+				}
 			} else {
-				HoldEmChoice choice = getPlayerChoice(choiceMaker, decisionContext);
-				reactToChoice(choice, choiceMaker);
-				Logger.log(this.toString());
+				seatNumToAct = getPositionAfter(seatNumToAct);
 			}
 		}
 	}
@@ -88,17 +126,17 @@ public class HandRound {
 				amountCharged = game.charge(choiceMaker.getSeat(), currentBet * 2);
 			}
 			choiceMaker.setRoundStatus(RoundStatus.Settled);
-			unsettleOtherActivePlayers(choiceMaker);
+			unsettleOtherActivePlayersThatArentAllIn(choiceMaker);
 			seatNumToAct = getPositionAfter(seatNumToAct);
 		}
 		currentBet = Math.max(currentBet, amountCharged);
 	}
 	
-	private void unsettleOtherActivePlayers(RoundParticipant choiceMaker) {
+	private void unsettleOtherActivePlayersThatArentAllIn(RoundParticipant choiceMaker) {
 		for (RoundParticipant rp: participants) {
 			if (!rp.equals(choiceMaker) && 
-				rp.getSeat().isActive() &&
-				rp.getSeat().getHandStatus() != HandStatus.AllIn) {
+				rp.getSeat().getHandStatus() == HandStatus.Active
+				) {
 				Logger.log("\tUnsettling " + rp.getSeat().getPlayerName());
 				rp.setRoundStatus(RoundStatus.Unsettled);
 			} else {
@@ -135,33 +173,7 @@ public class HandRound {
 		
 		return false;
 	}
-	
-	private void unsettleAll() {
-		for (RoundParticipant p: participants) {
-			p.setRoundStatus(RoundStatus.Unsettled);
-		}
-	}
-	
-	private void setUpSpecificRound() {
-		if (name.equals("preflop")) {
-			game.chargeBlinds();
-			currentBet = game.getOptions().getBb();
-			setSeatNumToAct(getUTGPosition());
-		} else {
-			currentBet = 0;
-			setSeatNumToAct(getSBPosition());
-			setSettleStates();
-			dealCommunityCards();
-			String cardStr = "";
-			for (Card c: dealtCards) {
-				cardStr += c + " ";
-			}
-			Logger.log(" | dealt cards");
-			Logger.log(" | " + cardStr + "\n");
-		}
 
-	}
-	
 	private void dealCommunityCards() {
 		List<Card> cards = new ArrayList<Card>();
 		for (int i = 0; i < numCardsToDeal; i++) {
@@ -180,7 +192,6 @@ public class HandRound {
 				rp.setRoundStatus(RoundStatus.Settled);
 			}
 		}
-		
 	}
 
 	private int getBBPosition() {
@@ -263,10 +274,9 @@ public class HandRound {
 	public int getSeatNumToAct() {
 		return seatNumToAct;
 	}
-
-	public void setSeatNumToAct(int seatNumToAct) {
-		Logger.log("Seat #" + seatNumToAct + " will be acting next.");
-		this.seatNumToAct = seatNumToAct;
+	public void setSeatNumToAct(int _seatNumToAct) {
+		Logger.log("Seat #" + _seatNumToAct + " will be acting next.");
+		seatNumToAct = _seatNumToAct;
 	}
 
 }

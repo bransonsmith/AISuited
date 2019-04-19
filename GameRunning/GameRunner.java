@@ -68,17 +68,18 @@ public class GameRunner {
 		
 		List<Seat> activeSeats = getActiveSeats();
 		List<Seat> inactiveSeats = getInactiveSeats();
-		str += "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+		str += "_________________________________________________________________\n";
+		str += "|_Pos_____InPot__________________________________Chips____Hand___|\n";
 		for (Seat s: activeSeats) {
 			str += "| " + getSeatStrInfo(s);
-			str += "| " + s.toString() + " | \n";
+			str += "| " + String.format("%-7s", ("(" + pot.getContributionsTotal(s) + ")")) + "| " + s.toString() + " | \n";
 		}
-		str += "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+		str += "|----------------------------------------------------------------|\n";
 		for (Seat s: inactiveSeats) {
 			str += "| " + getSeatStrInfo(s);
-			str += "| " + s.toString() + " | \n";
+			str += "| " + String.format("%-7s", ("(" + pot.getContributionsTotal(s) + ")")) + "| " + s.toString() + " | \n";
 		}
-		str += "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+		str += "|________________________________________________________________|\n";
 		str += "\n---------------------------------------------------------------------------------------------";
 		return str;
 	}
@@ -101,6 +102,7 @@ public class GameRunner {
 		pot.reset();
 		board = new ArrayList<Card>();
 		
+		markNeverInvolvedSeats();
 		activatePlayers();
 		dealHands();
 		
@@ -115,6 +117,7 @@ public class GameRunner {
 			s.nextLine();
 			Logger.log("\n == FLOP ==");
 			playFlop();
+			handleExcessBets();
 			Logger.log(this.toString() + "\n");
 		}
 		
@@ -122,6 +125,7 @@ public class GameRunner {
 			s.nextLine();
 			Logger.log("\n == TURN ==");
 			playTurn();
+			handleExcessBets();
 			Logger.log(this.toString() + "\n");
 		}
 		
@@ -129,6 +133,7 @@ public class GameRunner {
 			s.nextLine();
 			Logger.log("\n == RIVER ==");
 			playRiver();
+			handleExcessBets();
 			Logger.log(this.toString() + "\n");
 		}
 		
@@ -136,11 +141,25 @@ public class GameRunner {
 			s.nextLine();
 			Logger.log("\n == SHOWDOWN ==");
 			playShowdown();
+			handleExcessBets();
 			Logger.log(this.toString() + "\n");
 			s.nextLine();
+		} else {
+			Seat onlyActiveSeat = getActiveSeats().get(0);
+			Logger.log(onlyActiveSeat.getPlayerName() + " won the hand without going to Showdown! Well played.");
+			onlyActiveSeat.modChips(pot.getTotal());
 		}
 		wrapUpHand();
 		advancePositions();
+	}
+
+	private void markNeverInvolvedSeats() {
+		for (Seat s: seats) {
+			if (s.getChips() <= 0) {
+				s.setHandStatus(HandStatus.NeverInvolved);
+			}
+		}
+		
 	}
 
 	private void handleExcessBets() {
@@ -149,6 +168,7 @@ public class GameRunner {
 			int excessToAdd = pot.reduceContribution(excessBet.getKey(), excessBet.getValue());
 			if (excessToAdd > 0) {
 				Logger.log("Giving excess from bet back to " + excessBet.getKey().getPlayerName() + " -> " + excessToAdd + " chips.");
+				excessBet.getKey().setHandStatus(HandStatus.Active);
 				excessBet.getKey().modChips(excessToAdd);
 			}
 		}
@@ -209,7 +229,7 @@ public class GameRunner {
 		
 		List<RoundParticipant> rps = new ArrayList<RoundParticipant>();
 		for (Seat s: seats) {
-			if (s.getHandStatus() == HandStatus.Active) {
+			if (s.isActive()) {
 				rps.add(new RoundParticipant(s));
 			}
 		}
@@ -237,14 +257,11 @@ public class GameRunner {
 	}
 
 	private void playShowdown() throws HandEvaluatorCardCountProblem, KickerFillProblem {
-		// Sort all hands that made it to showdown (desc)
-		// Start at top,
-		// While pot.getTotal has money, pay all hands of next evaluation value
 		String boardStr = "";
 		for(Card c: board) boardStr += c + " ";
 		Logger.log("Board = [" + boardStr + "]");
 		
-		Map<HandEvaluation, List<Seat>> tieredEvals = new TreeMap<HandEvaluation, List<Seat>>();
+		Map<HandEvaluation, List<Seat>> tieredEvals = new TreeMap<HandEvaluation, List<Seat>>(Collections.reverseOrder());
 		for (Seat seat: getActiveSeats()) {
 			
 			List<Card> cards = new ArrayList<Card>();
@@ -260,63 +277,53 @@ public class GameRunner {
 			tieredEvals.put(eval, newVal);
 		}
 		
+		Logger.log(tiersToString(tieredEvals));
+		for (Map.Entry<HandEvaluation, List<Seat>> tier: tieredEvals.entrySet()) {
+			if (pot.getTotal() > 0) {
+				List<Seat> tierSortedByContribution = pot.getSortedByContribution(tier.getValue());
+				
+				while (tierSortedByContribution.size() > 0) {
+					Seat lowestContributor = tierSortedByContribution.get(0);
+					int totalWinnings = pot.getWinnings(lowestContributor);
+					splitWinningsBetween(totalWinnings, tierSortedByContribution);
+					tierSortedByContribution.remove(0);
+				}
+			}
+		}
+	}
+
+	private String tiersToString(Map<HandEvaluation, List<Seat>> tieredEvals) throws HandEvaluatorCardCountProblem, KickerFillProblem {
+		
+		String str = "";
 		int tierNum = 1;
 		for (Map.Entry<HandEvaluation, List<Seat>> tier: tieredEvals.entrySet()) {
-			
-			// Sort tier by contribution (asc)
-			List<Seat> tierSortedByContribution = getSortedByContribution(tier.getValue());
-			
-			// While still seats to collect
-				// Gather for lowest
-				// Split amongst remaining in tier
-			
-			
-			
 			for (Seat seat: tier.getValue()) {
 				List<Card> cards = new ArrayList<Card>();
 				cards.addAll(seat.getHoleCards());
 				cards.addAll(board);
 				HandEvaluation freshEval = HandEvaluator.getHoldEmHandEvaluation(cards);
-				Logger.log(tierNum + ". " + seat + " -> " + freshEval);
+				str += "|" + tierNum + "| " + seat + " -> " + freshEval + "\n";
 			}
 			tierNum++;
 		}
-
-		
-		Logger.log("\n-----HAND WINNERS-----");
-		for (int i = 0; i < winningEvals.size(); i++) {
-			Logger.log(String.format(" | %-15s = %s", winningSeats.get(i).getPlayerName(), winningEvals.get(i)));
-		}
-		Logger.log("");
-		deactivateAllExcept(winningSeats);
-		
+		return str;
 	}
 
-	public List<Seat> getSortedByContribution(List<Seat> tier) {
-		List<Seat> sorted = new ArrayList<Seat>();
-		for (Seat s : tier) {
-			boolean inserted = false;
-			for (int i = 0; i < sorted.size(); i++) {
-				if (pot.getContributions().containsKey(sorted.get(i)) && pot.getContributions().containsKey(s)) {
-					int sortedAtICont = pot.getContributions().get(sorted.get(i));
-					int sInTierCont = pot.getContributions().get(s);
-					if (sortedAtICont >= sInTierCont) {
-						sorted.add(i, s);
-						inserted = true;
-					}
-				}
-			}
-			if (!inserted) {
-				sorted.add(sorted.size(), s);
-			}
+	private void splitWinningsBetween(int winnings, List<Seat> winners) {
+		
+		int shareOfWinnings = winnings / winners.size();
+		int leftOvers = winnings % winners.size();
+		for (Seat winner : winners) {
+			Logger.log(winner.getPlayerName() + " won " + shareOfWinnings + " chips!");
+			winner.modChips(shareOfWinnings);
 		}
-		return sorted;
-	}
-
-	private void deactivateAllExcept(List<Seat> winningSeats) {
-		for (Seat s: seats) {
-			if (!winningSeats.contains(s)) {
-				s.setHandStatus(HandStatus.Loser);
+		if (leftOvers > 0) {
+			Logger.log("Diviing out the leftover " + leftOvers + " chips...");
+			int i = 0;
+			while (leftOvers > 0) {
+				winners.get(i).modChips(1);
+				leftOvers--;
+				i++;
 			}
 		}
 	}

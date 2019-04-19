@@ -3,6 +3,7 @@ package GameRunning;
 import java.util.ArrayList;
 import java.util.List;
 
+import Common.Logger;
 import GameObjects.Card;
 
 public class MyInfo {
