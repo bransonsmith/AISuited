@@ -4,9 +4,9 @@ import java.util.Collections;
 import java.util.List;
 
 import GameObjects.Card;
-import GameRunning.Choices;
-import GameRunning.DecisionContext;
-import GameRunning.HoldEmChoice;
+import GameRunning.Decisions.Choices;
+import GameRunning.Decisions.DecisionContext;
+import GameRunning.Decisions.HoldEmChoice;
 
 public class Rock extends Player {
 

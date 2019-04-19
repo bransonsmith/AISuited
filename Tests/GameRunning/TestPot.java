@@ -8,8 +8,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import GameRunning.Pot;
 import GameRunning.Seat;
+import GameRunning.HEGame.Pot;
 import Players.AlwaysFold;
 
 public class TestPot {
@@ -25,7 +25,8 @@ public class TestPot {
 	@Test
 	void addContributionCreatesNewEntry() {
 		
-		Seat seat = new Seat(1, new AlwaysFold("Branson", "Branson Owner"));
+		Seat seat = new Seat(1);
+		seat.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
 		int amount = 100;
 		Pot sut = new Pot();
 		sut.addContribution(seat, amount);
@@ -35,9 +36,12 @@ public class TestPot {
 	
 	@Test 
 	void getExcessBetsWhenZero() {
-		Seat seatB = new Seat(1, new AlwaysFold("Branson", "Branson Owner"));
-		Seat seatM = new Seat(2, new AlwaysFold("Max", "Max Owner"));
-		Seat seatT = new Seat(3, new AlwaysFold("Trent", "Trent Owner"));
+		Seat seatB = new Seat(1);
+		seatB.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
+		Seat seatM = new Seat(2);
+		seatM.setPlayer(new AlwaysFold("Max", "Max Owner"));
+		Seat seatT = new Seat(3);
+		seatT.setPlayer(new AlwaysFold("Trent", "Trent Owner"));
 		
 		int amountA = 100;
 		Pot sut = new Pot();
@@ -56,9 +60,12 @@ public class TestPot {
 	
 	@Test 
 	void getExcessBetsWhenExists() {
-		Seat seatB = new Seat(1, new AlwaysFold("Branson", "Branson Owner"));
-		Seat seatM = new Seat(2, new AlwaysFold("Max", "Max Owner"));
-		Seat seatT = new Seat(3, new AlwaysFold("Trent", "Trent Owner"));
+		Seat seatB = new Seat(1);
+		seatB.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
+		Seat seatM = new Seat(2);
+		seatM.setPlayer(new AlwaysFold("Max", "Max Owner"));
+		Seat seatT = new Seat(3);
+		seatT.setPlayer(new AlwaysFold("Trent", "Trent Owner"));
 		
 		int amountMore = 1000;
 		int amountLess = 100;
@@ -78,9 +85,12 @@ public class TestPot {
 	
 	@Test 
 	void getExcessBetsWhenTwoAtTop() {
-		Seat seatB = new Seat(1, new AlwaysFold("Branson", "Branson Owner"));
-		Seat seatM = new Seat(2, new AlwaysFold("Max", "Max Owner"));
-		Seat seatT = new Seat(3, new AlwaysFold("Trent", "Trent Owner"));
+		Seat seatB = new Seat(1);
+		seatB.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
+		Seat seatM = new Seat(2);
+		seatM.setPlayer(new AlwaysFold("Max", "Max Owner"));
+		Seat seatT = new Seat(3);
+		seatT.setPlayer(new AlwaysFold("Trent", "Trent Owner"));
 		
 		int amountMore = 1000;
 		int amountLess = 100;
@@ -100,9 +110,12 @@ public class TestPot {
 	@Test
 	void getTotalSumsAllContributions() {
 		
-		Seat seatB = new Seat(1, new AlwaysFold("Branson", "Branson Owner"));
-		Seat seatM = new Seat(2, new AlwaysFold("Max", "Max Owner"));
-		Seat seatT = new Seat(3, new AlwaysFold("Trent", "Trent Owner"));
+		Seat seatB = new Seat(1);
+		seatB.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
+		Seat seatM = new Seat(2);
+		seatM.setPlayer(new AlwaysFold("Max", "Max Owner"));
+		Seat seatT = new Seat(3);
+		seatT.setPlayer(new AlwaysFold("Trent", "Trent Owner"));
 		
 		int amountA = 100;
 		int amountB = 50;
@@ -121,10 +134,11 @@ public class TestPot {
 	@Test
 	void resetEmptiesContributions() {
 		
-		Seat seat = new Seat(1, new AlwaysFold("Branson", "Branson Owner"));
+		Seat Seat = new Seat(1);
+		Seat.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
 		int amount = 100;
 		Pot sut = new Pot();
-		sut.addContribution(seat, amount);
+		sut.addContribution(Seat, amount);
 		assertEquals((int)(sut.getContributions().size()), 1);
 		
 		sut.reset();
@@ -134,50 +148,56 @@ public class TestPot {
 	@Test
 	void addContributionAppendsExistingEntry() {
 		
-		Seat seat = new Seat(1, new AlwaysFold("Branson", "Branson Owner"));
+		Seat Seat = new Seat(1);
+		Seat.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
 		int originalAmount = 100;
 		int additionalAmount = 300;
 		Pot sut = new Pot();
-		sut.addContribution(seat, originalAmount);
-		sut.addContribution(seat, additionalAmount);
+		sut.addContribution(Seat, originalAmount);
+		sut.addContribution(Seat, additionalAmount);
 		
-		assertEquals((int)(sut.getContributions().get(seat)), originalAmount + additionalAmount);
+		assertEquals((int)(sut.getContributions().get(Seat)), originalAmount + additionalAmount);
 	}
 	
 	@Test
 	void addContributionReducesExistingEntry() {
 		
-		Seat seat = new Seat(1, new AlwaysFold("Branson", "Branson Owner"));
+		Seat Seat = new Seat(1);
+		Seat.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
 		int originalAmount = 100;
 		int reduceBy = 40;
 		Pot sut = new Pot();
-		sut.addContribution(seat, originalAmount);
-		int reducedBy = sut.reduceContribution(seat, reduceBy);
+		sut.addContribution(Seat, originalAmount);
+		int reducedBy = sut.reduceContribution(Seat, reduceBy);
 		
 		assertEquals(reducedBy, reduceBy);
-		assertEquals((int)(sut.getContributions().get(seat)), originalAmount - reduceBy);
+		assertEquals((int)(sut.getContributions().get(Seat)), originalAmount - reduceBy);
 	}
 	
 	@Test
 	void addContributionReducesExistingEntryTooMuch() {
 		
-		Seat seat = new Seat(1, new AlwaysFold("Branson", "Branson Owner"));
+		Seat Seat = new Seat(1);
+		Seat.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
 		int originalAmount = 100;
 		int reduceBy = 150;
 		Pot sut = new Pot();
-		sut.addContribution(seat, originalAmount);
-		int reducedBy = sut.reduceContribution(seat, reduceBy);
+		sut.addContribution(Seat, originalAmount);
+		int reducedBy = sut.reduceContribution(Seat, reduceBy);
 		
 		assertEquals(reducedBy, originalAmount);
-		assertEquals((int)(sut.getContributions().get(seat)), 0);
+		assertEquals((int)(sut.getContributions().get(Seat)), 0);
 	}
 	
 	@Test
 	void getWinningsHighestContributor() {
 		
-		Seat most = new Seat(1, new AlwaysFold("most", "most Owner"));
-		Seat middle = new Seat(2, new AlwaysFold("middle", "middle Owner"));
-		Seat least = new Seat(3, new AlwaysFold("least", "least Owner"));
+		Seat most = new Seat(1);
+		most.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
+		Seat middle = new Seat(2);
+		middle.setPlayer(new AlwaysFold("Max", "Max Owner"));
+		Seat least = new Seat(3);
+		least.setPlayer(new AlwaysFold("Trent", "Trent Owner"));
 		
 		int leastContribution = 100;
 		int middleContribution = 200;
@@ -199,9 +219,12 @@ public class TestPot {
 	@Test
 	void getWinningsMiddleContributor() {
 		
-		Seat most = new Seat(1, new AlwaysFold("most", "most Owner"));
-		Seat middle = new Seat(2, new AlwaysFold("middle", "middle Owner"));
-		Seat least = new Seat(3, new AlwaysFold("least", "least Owner"));
+		Seat most = new Seat(1);
+		most.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
+		Seat middle = new Seat(2);
+		middle.setPlayer(new AlwaysFold("Max", "Max Owner"));
+		Seat least = new Seat(3);
+		least.setPlayer(new AlwaysFold("Trent", "Trent Owner"));
 		
 		int leastContribution = 100;
 		int middleContribution = 200;
@@ -229,9 +252,12 @@ public class TestPot {
 	@Test
 	void sortByContributionSortsAsc() {
 		
-		Seat seatB = new Seat(1, new AlwaysFold("Branson", "Branson Owner"));
-		Seat seatM = new Seat(2, new AlwaysFold("Max", "Max Owner"));
-		Seat seatT = new Seat(3, new AlwaysFold("Trent", "Trent Owner"));
+		Seat seatB = new Seat(1);
+		seatB.setPlayer(new AlwaysFold("Branson", "Branson Owner"));
+		Seat seatM = new Seat(2);
+		seatM.setPlayer(new AlwaysFold("Max", "Max Owner"));
+		Seat seatT = new Seat(3);
+		seatT.setPlayer(new AlwaysFold("Trent", "Trent Owner"));
 		
 		Pot pot = new Pot();
 		
@@ -244,10 +270,10 @@ public class TestPot {
 		pot.addContribution(seatT, amountT);
 		
 		
-		List<Seat> seats = new ArrayList<Seat>();
-		seats.add(seatB); seats.add(seatM); seats.add(seatT);
+		List<Seat> Seats = new ArrayList<Seat>();
+		Seats.add(seatB); Seats.add(seatM); Seats.add(seatT);
 		
-		List<Seat> sorted = pot.getSortedByContribution(seats);
+		List<Seat> sorted = pot.getSortedByContribution(Seats);
 		
 		assertEquals(sorted.size(), 3);
 		assertEquals(sorted.get(0), seatM);

@@ -3,8 +3,6 @@ import java.util.List;
 import java.util.Scanner;
 
 import Common.Logger;
-import GameRunning.GameRunner;
-import GameRunning.Seat;
 import HandEvaluation.HandEvaluatorCardCountProblem;
 import HandEvaluation.Util.KickerFillProblem;
 import Players.AlwaysAllIn;
@@ -29,43 +27,7 @@ public class ManualInterface {
 		players.add(new Rock("Sheu", "Sheu"));
 		players.add(new Rock("McCrae", "McCrae"));
 		
-		GameRunner game = new GameRunner(9);
-
-		System.out.println(game.toString());
 		
-		for (Player p: players) {
-			game.sitPlayerDown(p);
-		}
-		game.setRandomDealerAndBlinds();
-		
-		System.out.println(game.toString());
-		
-		int handNum;
-		for (handNum = 1; game.getSeatsWithChipsCount() > 1; handNum++) {
-			Logger.log("~ Hand Number " + handNum + " ~");
-			game.startNewHand();
-		}
-		for (Seat s: game.getSeats()) {
-			if (s.getChips() > 0) {
-				Logger.log(s.getPlayerName() + " won the game in " + handNum + " hands!");
-			}
-		}
-		
-		/*
-		String strin = "";
-		while (!strin.toLowerCase().equals("q")) {
-			System.out.println("\n>");
-			strin = kb.nextLine().toLowerCase();
-			
-			if (strin.equals("game")) {
-				System.out.println(game.toString());
-			}
-			
-			if (strin.equals("hand")) {
-				game.startNewHand();
-			}
-		}
-		*/
 	}
 
 }

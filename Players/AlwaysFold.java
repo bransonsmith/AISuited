@@ -1,8 +1,8 @@
 package Players;
 
-import GameRunning.Choices;
-import GameRunning.DecisionContext;
-import GameRunning.HoldEmChoice;
+import GameRunning.Decisions.Choices;
+import GameRunning.Decisions.DecisionContext;
+import GameRunning.Decisions.HoldEmChoice;
 
 public class AlwaysFold extends Player {
 

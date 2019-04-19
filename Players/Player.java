@@ -1,7 +1,7 @@
 package Players;
 
-import GameRunning.DecisionContext;
-import GameRunning.HoldEmChoice;
+import GameRunning.Decisions.DecisionContext;
+import GameRunning.Decisions.HoldEmChoice;
 
 public abstract class Player {
 	

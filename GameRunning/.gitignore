@@ -1,7 +1,7 @@
 /HoldEmDecision.class
 /Choices.class
 /HoldEmChoice.class
-/Seat.class
+/HEParticipant.class
 /GameRunner.class
 /GameOptions.class
 /GameHand.class
@@ -27,3 +27,11 @@
 /HEHand.class
 /PreFlop.class
 /Flop.class
+/HEGame.class
+/GameParticipant.class
+/HEOptions.class
+/River.class
+/Turn.class
+/HEHandParticipant.class
+/HEParticipant.class
+/Seat.class

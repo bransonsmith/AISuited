@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import GameObjects.Card;
+import GameRunning.HEGame.Hands.HandStatus;
+import GameRunning.HEGame.Rounds.RoundStatus;
 import Players.Player;
 
 public class Seat {
@@ -11,12 +13,13 @@ public class Seat {
 	private int chips;
 	private int number;
 	private List<Card> holeCards;
-	private Player player;
+	protected Player player;
 	private HandStatus handStatus;
+	private RoundStatus roundStatus;
 	
-	public Seat(int _number, Player _player) {
+	public Seat(int _number) {
 		setNumber(_number);
-		setPlayer(_player);
+		setPlayer(null);
 		setHoleCards(new ArrayList<Card>());
 		setHandStatus(HandStatus.NeverInvolved);
 	}
@@ -112,20 +115,24 @@ public class Seat {
 	public List<Card> getHoleCards() {
 		return holeCards;
 	}
-
 	public void setHoleCards(List<Card> _holeCards) {
 		holeCards = _holeCards;
+	}
+
+	public boolean isActive() {
+		return handStatus == HandStatus.Active || handStatus == HandStatus.AllIn;
 	}
 
 	public HandStatus getHandStatus() {
 		return handStatus;
 	}
-
 	public void setHandStatus(HandStatus _handStatus) {
 		handStatus = _handStatus;
 	}
-
-	public boolean isActive() {
-		return handStatus == HandStatus.Active || handStatus == HandStatus.AllIn;
+	public RoundStatus getRoundStatus() {
+		return roundStatus;
+	}
+	public void setRoundStatus(RoundStatus _roundStatus) {
+		roundStatus = _roundStatus;
 	}
 }
