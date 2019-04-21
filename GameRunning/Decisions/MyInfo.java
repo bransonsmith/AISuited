@@ -10,23 +10,23 @@ import GameRunning.HEGame.Hands.HandStatus;
 
 public class MyInfo {
 
-	private int HEParticipantNumber;
+	private int seatNumber;
 	private int chips;
 	private List<Card> holeCards;
 	private HandStatus handStatus;
 	
 	public MyInfo(Seat seat) {
-		setHEParticipantNumber(seat.getNumber());
+		setSeatNumber(seat.getNumber());
 		setChips(seat.getChips());
 		setHandStatus(seat.getHandStatus());
 		setHoleCards(seat.getHoleCards());
 	}
 
-	public int getHEParticipantNumber() {
-		return HEParticipantNumber;
+	public int getSeatNumber() {
+		return seatNumber;
 	}
-	public void setHEParticipantNumber(int _HEParticipantNumber) {
-		HEParticipantNumber = _HEParticipantNumber;
+	public void setSeatNumber(int _seatNumber) {
+		seatNumber = _seatNumber;
 	}
 
 	public int getChips() {

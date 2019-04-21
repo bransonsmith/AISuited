@@ -38,9 +38,21 @@ public class Seat {
 		else if (handStatus == HandStatus.Loser) {
 			str += "*LOSER * ";
 		}
+		else if (handStatus == HandStatus.Busted) {
+			str += "*BU$TED* ";
+		}
 		else {
 			str += "*??????* ";
 		}
+		
+		if (roundStatus == RoundStatus.Settled) {
+			str += "s ";
+		} else if (roundStatus == RoundStatus.Unsettled) {
+			str += "u ";
+		} else {
+			str += " ";
+		}
+		
 		str += String.format("%-15s | ", getPlayerName());
 		str += String.format("%-8s", String.format("[%d]", chips));
 		String cardStr = "(";

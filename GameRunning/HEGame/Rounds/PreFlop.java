@@ -32,10 +32,12 @@ public class PreFlop extends HERound {
 	@Override
 	protected void setStartingRoundStatuses() throws Exception {
 		for (Seat s: seats) {
-			if (s.getNumber() == hand.getGame().getBBPosition()) {
-				s.setRoundStatus(RoundStatus.Settled);
-			} else {
-				s.setRoundStatus(RoundStatus.Unsettled);
+			if (s.isActive()) {
+				if (s.getNumber() == hand.getGame().getBBPosition()) {
+					s.setRoundStatus(RoundStatus.Settled);
+				} else {
+					s.setRoundStatus(RoundStatus.Unsettled);
+				}
 			}
 		}
 	}

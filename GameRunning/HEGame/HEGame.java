@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 import Common.Logger;
 import GameRunning.Seat;
 import GameRunning.HEGame.Hands.HEHand;
+import GameRunning.HEGame.Hands.HandStatus;
 import Players.Player;
 
 public class HEGame {
@@ -27,10 +29,61 @@ public class HEGame {
 		}
 	}
 	
-	public void startNewHand() {
+	public void startNewHand() throws Exception {
+		Scanner s = new Scanner(System.in);
+		Logger.log("Starting new Hand.");
 		hand = new HEHand(this);
+		while (hand.isNotComplete()) {
+			Logger.log(toString());
+			Logger.log("Press any key to continue hand...");
+			s.nextLine();
+			hand.commenceNextRound();
+		}
+		setHandStatuses();
+		moveButtonAndBlinds();
+		
 	}
 	
+	private void setHandStatuses() {
+		for (Seat s: seats) {
+			if (s.getChips() <= 0) {
+				s.setHandStatus(HandStatus.Busted);
+			} else {
+				s.setHandStatus(HandStatus.Active);
+			}
+		}
+	}
+
+	private void moveButtonAndBlinds() {
+		// Dont move to busted people
+		dPosition = getActivePositionAfter(dPosition);
+		sbPosition = getActivePositionAfter(dPosition);
+		bbPosition = getActivePositionAfter(sbPosition);
+	}
+
+	private int getActivePositionAfter(int position) {
+		int next = getPositionAfter(position);
+		Seat nSeat = getSeatWithNumber(next);
+		if (nSeat.isActive()) return next;
+		
+		while (next != position) {
+			next = getPositionAfter(next);
+			nSeat = getSeatWithNumber(next);
+			if (nSeat.isActive()) return next;
+		}
+		
+		return -1;
+	}
+
+	private Seat getSeatWithNumber(int num) {
+		for (Seat s: seats) {
+			if (s.getNumber() == num) {
+				return s;
+			}
+		}
+		return null;
+	}
+
 	public void setRandomDealerAndBlinds() {
 		List<Integer> allSeatNumbers = getAllSeatNumbers();
 		int i;
@@ -108,6 +161,88 @@ public class HEGame {
 		return getPositionAfter(bbPosition);
 	}
 
+	public String toString() {
+		String str = "";
+		str += getFrameBar();
+		str += getHandSummaryStr();
+		str += getFrameBar();
+		return str;
+	}
 	
+	public String getSeatSummaries() {
+		String str = "";
+		if (seats != null) {
+			List<Seat> activeSeats = getActiveSeats();
+			List<Seat> inactiveSeats = getInactiveSeats();
+			for (Seat as : activeSeats) {
+				str += "| " + as.toString() + "\n";
+			}
+			for (Seat ias : inactiveSeats) {
+				str += "| " + ias.toString() + "\n";
+			}
+		}
+		return str;
+	}
+	
+	public List<Seat> getActiveSeats() {
+		List<Seat> activeSeats = new ArrayList<Seat>();
+		if (seats != null) {
+			for (Seat s: seats) {
+				if (s.isActive()) {
+					activeSeats.add(s);
+				}
+			}
+		}
+		return activeSeats;
+	}
+	
+	public List<Seat> getInactiveSeats() {
+		List<Seat> inactiveSeats = new ArrayList<Seat>();
+		if (seats != null) {
+			for (Seat s: seats) {
+				if (!s.isActive()) {
+					inactiveSeats.add(s);
+				}
+			}
+		}
+		return inactiveSeats;
+	}
+
+	public String getHandSummaryStr() {
+		if (hand == null) {
+			return "No Current Hand";
+		}
+		return hand.getSummaryStr();
+		
+	}
+	
+	public String getFrameBar() {
+		return "____________________________________________________________\n";
+	}
+
+	public List<Seat> getFoldedSeats() {
+		List<Seat> folded = new ArrayList<Seat>();
+		if (seats != null) {
+			for (Seat s: seats) {
+				if (s.getHandStatus() == HandStatus.Folded) {
+					folded.add(s);
+				}
+			}
+		}
+		return folded;
+	}
+
+	public List<Seat> getUninvolvedAndBustedSeats() {
+		List<Seat> folded = new ArrayList<Seat>();
+		if (seats != null) {
+			for (Seat s: seats) {
+				if (s.getHandStatus() == HandStatus.Busted || 
+					s.getHandStatus() == HandStatus.NeverInvolved) {
+					folded.add(s);
+				}
+			}
+		}
+		return folded;
+	}
 	
 }

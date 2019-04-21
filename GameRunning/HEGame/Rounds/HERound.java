@@ -21,6 +21,7 @@ public abstract class HERound {
 	protected List<Seat> seats;
 	protected int currentBet;
 	protected int actingPosition;
+	protected boolean dealt;
 	
 	public HERound(HEHand _hand) throws Exception {
 		setHand(_hand);
@@ -31,6 +32,7 @@ public abstract class HERound {
 		setFirstToAct();
 		setStartingRoundStatuses();
 		complete = false;
+		hand.addToBoard(dealBehavior.getDeal(hand.getDeck()));
 	}
 
 	protected abstract void setDealBehavior();
@@ -43,13 +45,15 @@ public abstract class HERound {
 			complete = true;
 		} else {
 			Seat choiceMaker = getSeatWithNumber(actingPosition);
-			DecisionContext context = new DecisionContext(choiceMaker);
-			Logger.log("------> " + choiceMaker.getPlayerName() + ", What would you like to do?");
-			HEDecision decision = choiceMaker.getPlayer().getDecision(context);
-			Logger.log("-------> " + choiceMaker.getPlayerName() + " decided to " + decision + ".");
 			
-			reactToDecision(decision);
-			actingPosition = getNextActiveSeat(actingPosition);
+			if (choiceMaker.getRoundStatus() == RoundStatus.Unsettled) {
+				DecisionContext context = new DecisionContext(choiceMaker);
+				Logger.log("------> " + choiceMaker.getPlayerName() + ", What would you like to do?");
+				HEDecision decision = choiceMaker.getPlayer().getDecision(context);
+				Logger.log("-------> " + choiceMaker.getPlayerName() + " decided to " + decision + ".");
+				reactToDecision(decision);
+			}
+			actingPosition = getNextPositionNumber(actingPosition);
 		}
 	}
 	
@@ -92,14 +96,44 @@ public abstract class HERound {
 		if (actualAmount != amount) {
 			Logger.log("-------->" + actingSeat.getPlayerName() + " Didnt have " + amount + " chips.");
 		}
+		if (actualAmount == actingSeat.getChips()) {
+			actingSeat.setHandStatus(HandStatus.AllIn);
+		}
+		actingSeat.modChips(-1 * actualAmount);
 		hand.getPot().addContribution(actingSeat, actualAmount);
+		unsettleOthers(actingSeat);
 		Logger.log("------>" + actingSeat.getPlayerName() + " bet " + amount + " chips.");
 		currentBet = Math.max(actualAmount, currentBet);
 	}
 
-	private int getNextActiveSeat(int position) {
+	protected void unsettleOthers(Seat actingSeat) {
+		for (Seat s: seats) {
+			if (!s.equals(actingSeat) && 
+				s.getRoundStatus() == RoundStatus.Settled &&
+				s.getHandStatus() == HandStatus.Active) {
+				s.setRoundStatus(RoundStatus.Unsettled);
+			}
+		}
+	}
+
+	private int getNextPositionNumber(int position) {
 		
-		return 0;
+		Seat currentSeat = getSeatWithNumber(position);
+		int currentSeatIndex = seats.indexOf(currentSeat);
+		if (currentSeatIndex == seats.size() - 1) {
+			return seats.get(0).getNumber();
+		}
+		return seats.get(currentSeatIndex + 1).getNumber();
+	}
+
+	private List<Integer> getAllSeatNums() {
+		List<Integer> seatNums = new ArrayList<Integer>();
+		
+		for (Seat s: seats) {
+			seatNums.add(s.getNumber());
+		}
+		
+		return seatNums;
 	}
 
 	private Seat getSeatWithNumber(int seatNum) {
@@ -127,10 +161,10 @@ public abstract class HERound {
 				s.setRoundStatus(RoundStatus.Settled);
 				break;
 			case NeverInvolved:
-				s.setRoundStatus(RoundStatus.Settled);
+				s.setRoundStatus(RoundStatus.NeverInvolved);
 				break;
 			default:
-				s.setRoundStatus(RoundStatus.Settled);
+				s.setRoundStatus(RoundStatus.NeverInvolved);
 				break;
 			}
 		}

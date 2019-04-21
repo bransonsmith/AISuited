@@ -1,4 +1,4 @@
-package WinPercantage;
+package WinPercentage;
 
 public class WinPercentageCalculator {
 
