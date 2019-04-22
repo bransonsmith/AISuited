@@ -10,6 +10,8 @@ import Common.Logger;
 import GameRunning.Seat;
 import GameRunning.HEGame.Hands.HEHand;
 import GameRunning.HEGame.Hands.HandStatus;
+import HandEvaluation.HandEvaluatorCardCountProblem;
+import HandEvaluation.Util.KickerFillProblem;
 import Players.Player;
 
 public class HEGame {
@@ -29,7 +31,7 @@ public class HEGame {
 		}
 	}
 	
-	public void startNewHand() throws Exception {
+	public void startNewHand() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		Scanner s = new Scanner(System.in);
 		Logger.log("Starting new Hand.");
 		hand = new HEHand(this);
@@ -43,6 +45,23 @@ public class HEGame {
 		moveButtonAndBlinds();
 		
 	}
+	
+	public void startNewHandWithCheeseDeck() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
+		Scanner s = new Scanner(System.in);
+		Logger.log("Starting new Cheese Hand.");
+		boolean cheese = true;
+		hand = new HEHand(this, cheese);
+		while (hand.isNotComplete()) {
+			Logger.log(toString());
+			Logger.log("Press any key to continue hand...");
+			s.nextLine();
+			hand.commenceNextRound();
+		}
+		setHandStatuses();
+		moveButtonAndBlinds();
+		
+	}
+	
 	
 	private void setHandStatuses() {
 		for (Seat s: seats) {

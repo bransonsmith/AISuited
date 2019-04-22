@@ -14,6 +14,13 @@ public class Deck {
 		nextCardIndex = 0;
 	}
 	
+	public Deck(boolean cheese) {
+		if (cheese) {
+			setCardsToCheeseDeck();
+		}
+		nextCardIndex = 0;
+	}
+	
 	public void refresh() {
 		setCardsToPokerDeck();
 		nextCardIndex = 0;
@@ -42,6 +49,16 @@ public class Deck {
 	public void shuffle() {
 		Collections.shuffle(cards);
 		nextCardIndex = 0;
+	}
+	
+	private void setCardsToCheeseDeck() {
+		this.cards = new ArrayList<Card>();
+		for (int value = 8; value <= 14; value++) {
+			this.cards.add(new Card(value, Suits.Clubs));
+			this.cards.add(new Card(value, Suits.Diamonds));
+			this.cards.add(new Card(value, Suits.Hearts));
+			this.cards.add(new Card(value, Suits.Spades));
+		}
 	}
 	
 	private void setCardsToPokerDeck() {

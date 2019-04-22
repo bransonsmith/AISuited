@@ -1,8 +1,12 @@
 package GameRunning.HEGame.Hands;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 import Common.Logger;
 import GameObjects.Card;
@@ -15,6 +19,10 @@ import GameRunning.HEGame.Rounds.HERound;
 import GameRunning.HEGame.Rounds.PreFlop;
 import GameRunning.HEGame.Rounds.River;
 import GameRunning.HEGame.Rounds.Turn;
+import HandEvaluation.HandEvaluation;
+import HandEvaluation.HandEvaluator;
+import HandEvaluation.HandEvaluatorCardCountProblem;
+import HandEvaluation.Util.KickerFillProblem;
 
 public class HEHand {
 
@@ -37,6 +45,20 @@ public class HEHand {
 		activateEligiblePlayers();
 	}
 	
+	public HEHand(HEGame _game, boolean cheese) {
+
+		setGame(_game);
+		if (cheese) {
+			setDeck(new Deck(cheese));
+			deck.shuffle();
+		}
+		setSeats(_game.getSeats());
+		setPot(new Pot());
+		setBoard(new ArrayList<Card>());
+		complete = false;
+		activateEligiblePlayers();
+	}
+	
 	private void activateEligiblePlayers() {
 		for (Seat s: seats) {
 			if (s.getChips() > 0) {
@@ -49,7 +71,7 @@ public class HEHand {
 		board = cards;
 	}
 
-	public void commenceNextRound() throws Exception {
+	public void commenceNextRound() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		
 		if (game.getActiveSeats().size() == 1) {
 			wrapUp();
@@ -75,9 +97,11 @@ public class HEHand {
 				Logger.log("Commencing " + round.getName());
 				while (round.isNotComplete()) {
 					round.commenceNextAction();
-				}
+				}			
+				handleExcessBets();
 			}
 			else {
+				
 				String roundName = round.getName().toLowerCase();
 			
 				if (roundName.equals("pre flop")) {
@@ -87,6 +111,8 @@ public class HEHand {
 					while (round.isNotComplete()) {
 						round.commenceNextAction();
 					}
+
+					handleExcessBets();
 				}
 				else if (roundName.equals("flop")) {
 					round = new Turn(this);
@@ -94,6 +120,8 @@ public class HEHand {
 					while (round.isNotComplete()) {
 						round.commenceNextAction();
 					}
+
+					handleExcessBets();
 				}
 				else if (roundName.equals("turn")) {
 					round = new River(this);
@@ -101,13 +129,28 @@ public class HEHand {
 					while (round.isNotComplete()) {
 						round.commenceNextAction();
 					}
+
+					handleExcessBets();
 				}
 				else if (roundName.equals("river")) {
 					round = null;
 					Logger.log("Commencing Showdown");
-					commenceShowDown();
+					commenceShowDown(false);
 					wrapUp();
 				}
+			}
+		}
+	}
+
+	private void handleExcessBets() {
+		Map<Seat, Integer> excessBets = pot.getExcessBets();
+		if (game.getActiveSeats().size() > 1) {
+			for (Map.Entry<Seat, Integer> entry : excessBets.entrySet()) {
+				Seat s = entry.getKey();
+				int amount = entry.getValue();
+				Logger.log("Returning " + amount + " excess chips from bet to " + s.getPlayerName());
+				pot.reduceContribution(s, amount);
+				s.modChips(amount);
 			}
 		}
 	}
@@ -167,12 +210,113 @@ public class HEHand {
 		
 	}
 
-	private void commenceShowDown() {
-		// TODO Auto-generated method stub
-		Logger.log("No showdown logic yet :(. But it will happen here.");
+	public void commenceShowDown(boolean silentMode) throws HandEvaluatorCardCountProblem, KickerFillProblem {
+		Map<HandEvaluation, List<Seat>> tieredHandEvaluations = getTieredHandEvaluations();
+		
+		if (!silentMode) {
+			int tierNum = 1;
+			Logger.log("**************************************************************");
+			Logger.log("|   Pot = {" + pot.getTotal() + "}");
+			Logger.log("| Board = [" + boardStr() + "]");
+			for (Map.Entry<HandEvaluation, List<Seat>> entry: tieredHandEvaluations.entrySet() ) {
+				for (Seat s: entry.getValue()) {
+					List<Card> allCards = new ArrayList<Card>();
+					allCards.addAll(s.getHoleCards());
+					allCards.addAll(board);
+					Logger.log("| " + tierNum + ". " + String.format("%-20s", s) + " -> " + HandEvaluator.getHoldEmHandEvaluation(allCards));
+				}
+				tierNum++;
+			}
+			Logger.log("**************************************************************");
+		}
+		
+		for (Map.Entry<HandEvaluation, List<Seat>> entry: tieredHandEvaluations.entrySet() ) {
+			if (entry.getValue().size() == 1) {
+				Seat soleWinner = entry.getValue().get(0);
+				int winnings = pot.getWinnings(soleWinner);
+				if (!silentMode) {
+					Logger.log(soleWinner.getPlayerName() + " won " + winnings + " chips!");
+				}
+				soleWinner.modChips(winnings);
+			} else {
+				List<Seat> sortedTier = getSortedSeatsByContribution(entry.getValue());
+				
+				while (sortedTier.size() > 0 && pot.getTotal() > 0) {
+					int totalWinnings = pot.getWinnings(sortedTier.get(0));
+					int winningShare = totalWinnings / sortedTier.size();
+					
+					int leftOvers = totalWinnings - (winningShare * sortedTier.size());
+					
+					for (Seat payMe: sortedTier) {
+						int seatWinnings = winningShare;
+						if (leftOvers > 0) {
+							seatWinnings += 1;
+							leftOvers -= 1;
+						}
+						if (!silentMode) {
+							Logger.log(payMe.getPlayerName() + " won " + seatWinnings + " chips!");
+						}
+						payMe.modChips(seatWinnings);
+					}
+					sortedTier.remove(0);
+				}
+			}	
+		}
+		
 		complete = true;
 	}
 	
+	private String boardStr() {
+		String str = "";
+		for (Card c: board) {
+			str += c + " ";
+		}
+		return str.trim();
+	}
+
+	private List<Seat> getSortedSeatsByContribution(List<Seat> seatsToSort) {
+		
+		List<Seat> sorted = new ArrayList<Seat>();
+		
+		for (Seat s: seatsToSort) {
+			int i = 0;
+			boolean placed = false;
+			while (i < sorted.size() && !placed) {
+				
+				int iCont = pot.getContributionsTotal(sorted.get(i));
+				int sCont = pot.getContributionsTotal(s);
+				if (sCont < iCont) {
+					sorted.add(i, s);
+				}
+				i++;
+			}
+			if (!placed) {
+				sorted.add(sorted.size(), s);
+			}
+		}
+		
+		return sorted;
+	}
+
+	private Map<HandEvaluation, List<Seat>> getTieredHandEvaluations() throws HandEvaluatorCardCountProblem, KickerFillProblem {
+		Map<HandEvaluation, List<Seat>> evals = new TreeMap<HandEvaluation, List<Seat>>(Collections.reverseOrder());
+		for (Seat s: game.getActiveSeats()) {
+			List<Card> allCards = new ArrayList<Card>();
+			allCards.addAll(s.getHoleCards());
+			allCards.addAll(board);
+			HandEvaluation eval = HandEvaluator.getHoldEmHandEvaluation(allCards);
+		
+			if (evals.containsKey(eval)) {
+				evals.get(eval).add(s);
+			} else {
+				List<Seat> newVal = new ArrayList<Seat>();
+				newVal.add(s);
+				evals.put(eval, newVal);
+			}
+		}
+		return evals;
+	}
+
 	public boolean isComplete() {
 		return complete;
 	}

@@ -48,7 +48,7 @@ public class ManualInterface {
 		
 		String cont = "y";
 		while (!cont.toLowerCase().contains("n")) {
-			game.startNewHand();
+			game.startNewHandWithCheeseDeck();
 			Logger.log("Play another hand? y/n");
 			cont = kb.nextLine();
 		}
