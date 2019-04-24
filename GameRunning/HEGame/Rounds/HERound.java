@@ -3,12 +3,14 @@ package GameRunning.HEGame.Rounds;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 
 import Common.Logger;
 import GameObjects.Card;
 import GameRunning.Seat;
 import GameRunning.Decisions.DecisionContext;
 import GameRunning.Decisions.HEDecision;
+import GameRunning.HEGame.HEGame;
 import GameRunning.HEGame.Hands.HEHand;
 import GameRunning.HEGame.Hands.HandStatus;
 
@@ -41,6 +43,8 @@ public abstract class HERound {
 	protected abstract void setFirstToAct();
 	
 	public void commenceNextAction() {
+		HEGame game = hand.getGame();
+		game.updateObservers();
 		if (noPlayersUnsettled()) {
 			complete = true;
 		} else {
@@ -49,9 +53,14 @@ public abstract class HERound {
 			if (choiceMaker.getRoundStatus() == RoundStatus.Unsettled) {
 				DecisionContext context = new DecisionContext(choiceMaker);
 				Logger.log("------> " + choiceMaker.getPlayerName() + ", What would you like to do?");
+				game.addMessage("" + choiceMaker.getPlayerName() + ", What would you like to do?");
+				game.updateObservers();
+				new Scanner(System.in).nextLine();
 				HEDecision decision = choiceMaker.getPlayer().getDecision(context);
 				Logger.log("-------> " + choiceMaker.getPlayerName() + " decided to " + decision + ".");
 				reactToDecision(decision);
+				game.addMessage("" + choiceMaker.getPlayerName() + ", What would you like to do?");
+				game.updateObservers();
 			}
 			actingPosition = getNextPositionNumber(actingPosition);
 		}
@@ -88,6 +97,8 @@ public abstract class HERound {
 		
 		}
 		
+		HEGame game = hand.getGame();
+		game.updateObservers();
 	}
 
 	private void handleBet(Seat actingSeat, int amount) {

@@ -17,6 +17,8 @@ public class ManualInterface {
 
 	public static void main(String[] args) throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		
+	
+
 		Scanner kb = new Scanner(System.in);
 		
 		List<Player> players = new ArrayList<Player>();
@@ -43,7 +45,9 @@ public class ManualInterface {
 		
 		
 		HEGame game = new HEGame(seats, options);
+		Display display = new Display(game); 
 		
+		game.addObserver(display);
 		
 		
 		String cont = "y";
@@ -51,8 +55,13 @@ public class ManualInterface {
 			game.startNewHandWithCheeseDeck();
 			Logger.log("Play another hand? y/n");
 			cont = kb.nextLine();
+			display.repaint();
 		}
 		
 	}
+	
+	 
+	
+
 
 }

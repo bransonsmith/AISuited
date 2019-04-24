@@ -1,8 +1,10 @@
 package GameRunning.HEGame;
 
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Observable;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -14,7 +16,7 @@ import HandEvaluation.HandEvaluatorCardCountProblem;
 import HandEvaluation.Util.KickerFillProblem;
 import Players.Player;
 
-public class HEGame {
+public class HEGame extends Observable {
 
 	private HEOptions options;
 	private int sbPosition;
@@ -22,6 +24,7 @@ public class HEGame {
 	private int dPosition;
 	private List<Seat> seats;
 	private HEHand hand;
+	private List<String> messages;
 	
 	public HEGame(List<Seat> _seats, HEOptions _options) throws Exception {
 		setOptions(new HEOptions(1000, 50, 100));
@@ -29,6 +32,12 @@ public class HEGame {
 		if (seats.size() > 0) {
 			setRandomDealerAndBlinds();
 		}
+		messages = new ArrayList<String>();
+	}
+	
+	public void updateObservers() {
+		setChanged();
+        notifyObservers(this);
 	}
 	
 	public void startNewHand() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
@@ -36,14 +45,19 @@ public class HEGame {
 		Logger.log("Starting new Hand.");
 		hand = new HEHand(this);
 		while (hand.isNotComplete()) {
+			setChanged();
+	        notifyObservers(this);
 			Logger.log(toString());
 			Logger.log("Press any key to continue hand...");
 			s.nextLine();
 			hand.commenceNextRound();
 		}
 		setHandStatuses();
+		setChanged();
+        notifyObservers(this);
 		moveButtonAndBlinds();
-		
+		setChanged();
+        notifyObservers(this);
 	}
 	
 	public void startNewHandWithCheeseDeck() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
@@ -52,6 +66,8 @@ public class HEGame {
 		boolean cheese = true;
 		hand = new HEHand(this, cheese);
 		while (hand.isNotComplete()) {
+			setChanged();
+	        notifyObservers(this);
 			Logger.log(toString());
 			Logger.log("Press any key to continue hand...");
 			s.nextLine();
@@ -59,7 +75,8 @@ public class HEGame {
 		}
 		setHandStatuses();
 		moveButtonAndBlinds();
-		
+		setChanged();
+        notifyObservers(this);
 	}
 	
 	
@@ -70,6 +87,7 @@ public class HEGame {
 			} else {
 				s.setHandStatus(HandStatus.Active);
 			}
+			notifyObservers(this);
 		}
 	}
 
@@ -114,6 +132,7 @@ public class HEGame {
 		dPosition = allSeatNumbers.get(i);
 		sbPosition = getPositionAfter(dPosition);
 		bbPosition = getPositionAfter(sbPosition);
+		notifyObservers(this);
 	}
 	
 	private List<Integer> getAllSeatNumbers() {
@@ -263,5 +282,20 @@ public class HEGame {
 		}
 		return folded;
 	}
-	
+
+	public HEHand getHand() {
+		return hand;
+	}
+
+	public void addMessage(String message) {
+		if (messages.size() > 2) {
+			messages = messages.subList(1, 3);
+		}
+		messages.add(message);
+	}
+
+	public List<String> getMessages() {
+		return messages;
+	}
+
 }

@@ -73,6 +73,7 @@ public class HEHand {
 
 	public void commenceNextRound() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		
+		game.notifyObservers(game);
 		if (game.getActiveSeats().size() == 1) {
 			wrapUp();
 		} else {
@@ -153,6 +154,7 @@ public class HEHand {
 				s.modChips(amount);
 			}
 		}
+		game.notifyObservers(game);
 	}
 
 	private void charge(Seat seat, int amount) {
@@ -177,6 +179,7 @@ public class HEHand {
 	
 	private void wrapUp() {
 		Logger.log("Wrapping up hand.");
+		game.notifyObservers(game);
 		List<Seat> as = game.getActiveSeats();
 		if (as.size() == 1) {
 			Logger.log("Well played " + as.get(0).getPlayerName());
@@ -187,6 +190,7 @@ public class HEHand {
 		for (Seat s: seats) {
 			s.clearHand();
 		}
+		game.notifyObservers(game);
 		complete = true;	
 	}
 
@@ -223,6 +227,7 @@ public class HEHand {
 					List<Card> allCards = new ArrayList<Card>();
 					allCards.addAll(s.getHoleCards());
 					allCards.addAll(board);
+					game.addMessage("| " + tierNum + ". " + String.format("%-20s", s.getPlayerName()) + " -> " + HandEvaluator.getHoldEmHandEvaluation(allCards));
 					Logger.log("| " + tierNum + ". " + String.format("%-20s", s) + " -> " + HandEvaluator.getHoldEmHandEvaluation(allCards));
 				}
 				tierNum++;
@@ -266,10 +271,15 @@ public class HEHand {
 		complete = true;
 	}
 	
-	private String boardStr() {
+	public String boardStr() {
 		String str = "";
 		for (Card c: board) {
 			str += c + " ";
+		}
+		int cCount = board.size();
+		while (cCount < 5) {
+			str += "__ ";
+			cCount++;
 		}
 		return str.trim();
 	}

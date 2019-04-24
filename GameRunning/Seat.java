@@ -147,4 +147,89 @@ public class Seat {
 	public void setRoundStatus(RoundStatus _roundStatus) {
 		roundStatus = _roundStatus;
 	}
+
+	public String getStatusString() {
+		String str = "";
+		if (handStatus == HandStatus.Active) {
+			str += "*Active* ";
+		}
+		else if (handStatus == HandStatus.Folded) {
+			str += "*Folded* ";
+		}
+		else if (handStatus == HandStatus.AllIn) {
+			str += "*ALL IN* ";
+		}
+		else if (handStatus == HandStatus.Loser) {
+			str += "*LOSER * ";
+		}
+		else if (handStatus == HandStatus.Busted) {
+			str += "*BU$TED* ";
+		}
+		else {
+			str += "*??????* ";
+		}
+		str += " | ";
+		
+		if (roundStatus == RoundStatus.Settled) {
+			str += "Settled ";
+		} else if (roundStatus == RoundStatus.Unsettled) {
+			str += "Unsettled ";
+		} else {
+			str += " ";
+		}
+		return str;
+	}
+	
+	public String getChipString() {
+		return String.format("%-8s", String.format("[%d]", chips));
+	}
+	
+	public String getCardString() {
+		String cardStr = "[";
+		for (Card c: holeCards) cardStr += c;
+		cardStr += "]";
+		return cardStr;
+	}
+	
+	public String toDrawString() {
+		String str = "" + number + ". ";
+		if (handStatus == HandStatus.Active) {
+			str += "*Active* ";
+		}
+		else if (handStatus == HandStatus.Folded) {
+			str += "*Folded* ";
+		}
+		else if (handStatus == HandStatus.AllIn) {
+			str += "*ALL IN* ";
+		}
+		else if (handStatus == HandStatus.Loser) {
+			str += "*LOSER * ";
+		}
+		else if (handStatus == HandStatus.Busted) {
+			str += "*BU$TED* ";
+		}
+		else {
+			str += "*??????* ";
+		}
+		str += " | ";
+		
+		if (roundStatus == RoundStatus.Settled) {
+			str += "Settled ";
+		} else if (roundStatus == RoundStatus.Unsettled) {
+			str += "Unsettled ";
+		} else {
+			str += " ";
+		}
+		str += "\n";
+		
+		str += String.format("%-15s | ", getPlayerName());
+		str += "\n";
+		str += String.format("%-8s", String.format("[%d]", chips));
+		str += "\n";
+		String cardStr = "[";
+		for (Card c: holeCards) cardStr += c;
+		cardStr += "]";
+		str += String.format("%-7s", cardStr);
+		return str;
+	}
 }
