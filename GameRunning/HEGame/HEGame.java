@@ -9,6 +9,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 import Common.Logger;
+import GameRunning.IEventer;
 import GameRunning.Seat;
 import GameRunning.HEGame.Hands.HEHand;
 import GameRunning.HEGame.Hands.HandStatus;
@@ -25,60 +26,73 @@ public class HEGame extends Observable {
 	private List<Seat> seats;
 	private HEHand hand;
 	private List<String> messages;
+	protected boolean isComplete;
+	protected IEventer child;
 	
 	public HEGame(List<Seat> _seats, HEOptions _options) throws Exception {
 		setOptions(new HEOptions(1000, 50, 100));
 		setSeats(_seats);
+		child = null;
+		isComplete = false;
 		if (seats.size() > 0) {
 			setRandomDealerAndBlinds();
 		}
 		messages = new ArrayList<String>();
 	}
 	
+	public boolean isComplete() { return isComplete; }
+	public boolean isNotComplete() { return !isComplete; }
+	public IEventer getChild() { return child; }
+	public void setChild(IEventer _child) { child = _child; }
+	public void commenceNextEvent() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
+		if (child != null && child.isNotComplete()) {
+			child.commenceNextEvent();
+		} else {
+			commenceMyNextEvent();
+		}
+	}
+	
+	protected void commenceMyNextEvent() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
+		
+		List<Seat> withChips = getSeatsWithChips();
+		if (withChips.size() == 1 ) {
+			isComplete = true;
+			addMessage(withChips.get(0).getPlayerName() + " is the winner!");
+			return;
+		}
+		
+		if (hand == null) {
+			startNewHand();
+			child = hand;
+			return;
+		}
+		
+		if (hand.isComplete()) {
+			addMessage("Hand complete.");
+			hand = null;
+			child = null;
+			return;
+		}
+	}
+
 	public void updateObservers() {
 		setChanged();
         notifyObservers(this);
 	}
 	
 	public void startNewHand() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
-		Scanner s = new Scanner(System.in);
-		Logger.log("Starting new Hand.");
+		messages.clear();
 		hand = new HEHand(this);
-		while (hand.isNotComplete()) {
-			setChanged();
-	        notifyObservers(this);
-			Logger.log(toString());
-			Logger.log("Press any key to continue hand...");
-			s.nextLine();
-			hand.commenceNextRound();
-		}
 		setHandStatuses();
-		setChanged();
-        notifyObservers(this);
 		moveButtonAndBlinds();
-		setChanged();
-        notifyObservers(this);
 	}
 	
 	public void startNewHandWithCheeseDeck() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
-		Scanner s = new Scanner(System.in);
-		Logger.log("Starting new Cheese Hand.");
 		boolean cheese = true;
 		hand = new HEHand(this, cheese);
-		while (hand.isNotComplete()) {
-			setChanged();
-	        notifyObservers(this);
-			Logger.log(toString());
-			Logger.log("Press any key to continue hand...");
-			s.nextLine();
-			hand.commenceNextRound();
-		}
 		setHandStatuses();
 		moveButtonAndBlinds();
-		setChanged();
-        notifyObservers(this);
 	}
-	
 	
 	private void setHandStatuses() {
 		for (Seat s: seats) {
@@ -270,6 +284,18 @@ public class HEGame extends Observable {
 		return folded;
 	}
 
+	private List<Seat> getSeatsWithChips() {
+		List<Seat> withChips = new ArrayList<Seat>();
+		
+		for (Seat s: seats) {
+			if (s.getChips() > 0) {
+				withChips.add(s);
+			}
+		}
+		
+		return withChips;
+	}
+	
 	public List<Seat> getUninvolvedAndBustedSeats() {
 		List<Seat> folded = new ArrayList<Seat>();
 		if (seats != null) {
@@ -288,10 +314,11 @@ public class HEGame extends Observable {
 	}
 
 	public void addMessage(String message) {
-		if (messages.size() > 2) {
-			messages = messages.subList(1, 3);
+		if (messages.size() > 7) {
+			messages = messages.subList(1, 7);
 		}
 		messages.add(message);
+		updateObservers();
 	}
 
 	public List<String> getMessages() {

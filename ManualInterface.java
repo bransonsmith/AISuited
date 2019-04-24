@@ -49,13 +49,12 @@ public class ManualInterface {
 		
 		game.addObserver(display);
 		
-		
-		String cont = "y";
-		while (!cont.toLowerCase().contains("n")) {
-			game.startNewHandWithCheeseDeck();
-			Logger.log("Play another hand? y/n");
-			cont = kb.nextLine();
+		while (game.isNotComplete()) {
+			
+			kb.nextLine();
+			game.commenceNextEvent();
 			display.repaint();
+			
 		}
 		
 	}

@@ -26,24 +26,33 @@ public class Rock extends Player {
 	}
 
 	private boolean isEliteHand(List<Card> myHoleCards) {
-		if (isHighPocketPair(myHoleCards)) {
+		if (isPocketPair(myHoleCards)) {
 			return true;
 		}
-		if (isHighAce(myHoleCards)) {
+		if (isPlayableAce(myHoleCards)) {
+			return true;
+		}
+		if (isTwoBroadWayCards(myHoleCards)) {
 			return true;
 		}
 		return false;
 	}
 	
-	private boolean isHighAce(List<Card> myHoleCards) {
+	private boolean isPlayableAce(List<Card> myHoleCards) {
 		Collections.sort(myHoleCards, Collections.reverseOrder());
-		return 	myHoleCards.get(0).getAceVal() == 14 &&  
-				myHoleCards.get(1).getAceVal() >= 12;
+		return 	myHoleCards.get(0).getAceVal() == 14 && (  
+				myHoleCards.get(1).getAceVal() >= 9 ||
+				myHoleCards.get(1).getAceVal() <= 5 	) ;
 	}
 	
-	private boolean isHighPocketPair(List<Card> myHoleCards) {
-		return 	myHoleCards.get(0).getAceVal() >= 9 &&
-				myHoleCards.get(0).getAceVal() == myHoleCards.get(1).getAceVal();
+	private boolean isTwoBroadWayCards(List<Card> myHoleCards) {
+		Collections.sort(myHoleCards, Collections.reverseOrder());
+		return 	myHoleCards.get(0).getAceVal() >= 14 &&  
+				myHoleCards.get(1).getAceVal() >= 10;
+	}
+	
+	private boolean isPocketPair(List<Card> myHoleCards) {
+		return 	myHoleCards.get(0).getAceVal() == myHoleCards.get(1).getAceVal();
 	}
 
 }

@@ -7,6 +7,7 @@ import java.util.Scanner;
 
 import Common.Logger;
 import GameObjects.Card;
+import GameRunning.IEventer;
 import GameRunning.Seat;
 import GameRunning.Decisions.DecisionContext;
 import GameRunning.Decisions.HEDecision;
@@ -14,9 +15,8 @@ import GameRunning.HEGame.HEGame;
 import GameRunning.HEGame.Hands.HEHand;
 import GameRunning.HEGame.Hands.HandStatus;
 
-public abstract class HERound {
+public abstract class HERound extends IEventer {
 
-	protected boolean complete;
 	protected String name;
 	protected HEHand hand;
 	protected DealBehavior dealBehavior;
@@ -24,6 +24,8 @@ public abstract class HERound {
 	protected int currentBet;
 	protected int actingPosition;
 	protected boolean dealt;
+	private HEDecision decision;
+	private String state;
 	
 	public HERound(HEHand _hand) throws Exception {
 		setHand(_hand);
@@ -33,7 +35,10 @@ public abstract class HERound {
 		setCurrentBet();
 		setFirstToAct();
 		setStartingRoundStatuses();
-		complete = false;
+		state = null;
+		child = null;
+		decision = null;
+		isComplete = false;
 		hand.addToBoard(dealBehavior.getDeal(hand.getDeck()));
 	}
 
@@ -41,29 +46,84 @@ public abstract class HERound {
 	protected abstract void setName();
 	protected abstract void setCurrentBet();
 	protected abstract void setFirstToAct();
-	
-	public void commenceNextAction() {
+
+	@Override
+	public void commenceMyNextEvent() {
+		
 		HEGame game = hand.getGame();
-		game.updateObservers();
 		if (noPlayersUnsettled()) {
-			complete = true;
-		} else {
-			Seat choiceMaker = getSeatWithNumber(actingPosition);
 			
-			if (choiceMaker.getRoundStatus() == RoundStatus.Unsettled) {
-				DecisionContext context = new DecisionContext(choiceMaker);
-				Logger.log("------> " + choiceMaker.getPlayerName() + ", What would you like to do?");
-				game.addMessage("" + choiceMaker.getPlayerName() + ", What would you like to do?");
-				game.updateObservers();
-				new Scanner(System.in).nextLine();
-				HEDecision decision = choiceMaker.getPlayer().getDecision(context);
-				Logger.log("-------> " + choiceMaker.getPlayerName() + " decided to " + decision + ".");
-				reactToDecision(decision);
-				game.addMessage("" + choiceMaker.getPlayerName() + ", What would you like to do?");
-				game.updateObservers();
-			}
+			game.addMessage("The round is complete!");
+			isComplete = true;
+			state = null;
+			
+		} else if (state == null) {
+
+			decision = getPlayerDecision();
+			state = "have answer";
+			
+		} else if (state.equals("have answer")) {
+			
+			reactToDecision(decision);
+			state = null;
 			actingPosition = getNextPositionNumber(actingPosition);
+			
 		}
+	}
+	
+	private HEDecision getPlayerDecision() {
+		HEGame game = hand.getGame();
+		HEDecision decision = null;
+		Seat choiceMaker = getSeatWithNumber(actingPosition);
+		
+		if (choiceMaker.getRoundStatus() == RoundStatus.Unsettled) {
+			DecisionContext context = new DecisionContext(choiceMaker);
+			game.addMessage("" + choiceMaker.getPlayerName() + ", What would you like to do?");
+			decision = choiceMaker.getPlayer().getDecision(context);
+		}
+		
+		return decision;
+	}
+	
+	private void reactToDecision(HEDecision decision) {
+		
+		Seat actingSeat = getSeatWithNumber(actingPosition);
+		actingSeat.setRoundStatus(RoundStatus.Settled);
+		int amount;
+		String actionString = "";
+		
+		if (decision == null) {
+			return;
+		}
+		
+		switch(decision.getType()) {
+		case Call:
+			amount = handleBet(actingSeat, decision.getAmount());
+			actionString = "call " + amount + ".";
+			if (actingSeat.getHandStatus() == HandStatus.AllIn) {
+				actionString = "call and is ALL IN!";
+			}
+			break;
+		case Raise:
+			amount = handleBet(actingSeat, decision.getAmount());
+			actionString = "raise for a total bet of " + amount + ".";
+			if (actingSeat.getHandStatus() == HandStatus.AllIn) {
+				actionString = "raise and is ALL IN!";
+			}
+			break;
+		case Check:
+			actionString = "check. KNK KNK";
+			break;
+		case Fold:
+			actingSeat.setHandStatus(HandStatus.Folded);
+			actionString = "fold.";
+			break;
+		default:
+			break;
+		}
+		
+		HEGame game = hand.getGame();
+		game.addMessage(actingSeat.getPlayerName() + " decided to " + actionString);
 	}
 	
 	private boolean noPlayersUnsettled() {
@@ -75,33 +135,7 @@ public abstract class HERound {
 		return true;
 	}
 
-	private void reactToDecision(HEDecision decision) {
-		
-		Seat actingSeat = getSeatWithNumber(actingPosition);
-		actingSeat.setRoundStatus(RoundStatus.Settled);
-		
-		switch(decision.getType()) {
-		case Call:
-			handleBet(actingSeat, decision.getAmount());
-			break;
-		case Raise:
-			handleBet(actingSeat, decision.getAmount());
-			break;
-		case Check:
-			break;
-		case Fold:
-			actingSeat.setHandStatus(HandStatus.Folded);
-			break;
-		default:
-			break;
-		
-		}
-		
-		HEGame game = hand.getGame();
-		game.updateObservers();
-	}
-
-	private void handleBet(Seat actingSeat, int amount) {
+	private int handleBet(Seat actingSeat, int amount) {
 		Logger.log("------->" + actingSeat.getPlayerName() + " wants to bet " + amount + " chips.");
 		int actualAmount = Math.min(amount, actingSeat.getChips());
 		if (actualAmount != amount) {
@@ -115,6 +149,7 @@ public abstract class HERound {
 		unsettleOthers(actingSeat);
 		Logger.log("------>" + actingSeat.getPlayerName() + " bet " + amount + " chips.");
 		currentBet = Math.max(actualAmount, currentBet);
+		return actualAmount;
 	}
 
 	protected void unsettleOthers(Seat actingSeat) {
@@ -215,10 +250,4 @@ public abstract class HERound {
 		hand = _hand;
 	}
 
-	public boolean isComplete() {
-		return complete;
-	}
-	public boolean isNotComplete() {
-		return !complete;
-	}
 }

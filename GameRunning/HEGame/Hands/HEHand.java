@@ -11,6 +11,7 @@ import java.util.TreeMap;
 import Common.Logger;
 import GameObjects.Card;
 import GameObjects.Deck;
+import GameRunning.IEventer;
 import GameRunning.Seat;
 import GameRunning.HEGame.HEGame;
 import GameRunning.HEGame.Pot;
@@ -24,14 +25,13 @@ import HandEvaluation.HandEvaluator;
 import HandEvaluation.HandEvaluatorCardCountProblem;
 import HandEvaluation.Util.KickerFillProblem;
 
-public class HEHand {
+public class HEHand extends IEventer {
 
 	private Deck deck;
 	private HEGame game;
 	private List<Seat> seats;
 	private Pot pot;
 	private HERound round;
-	private boolean complete;
 	private List<Card> board;
 	
 	public HEHand(HEGame _game) {
@@ -41,7 +41,8 @@ public class HEHand {
 		setSeats(_game.getSeats());
 		setPot(new Pot());
 		setBoard(new ArrayList<Card>());
-		complete = false;
+		isComplete = false;
+		child = null;
 		activateEligiblePlayers();
 	}
 	
@@ -55,7 +56,8 @@ public class HEHand {
 		setSeats(_game.getSeats());
 		setPot(new Pot());
 		setBoard(new ArrayList<Card>());
-		complete = false;
+		isComplete = false;
+		child = null;
 		activateEligiblePlayers();
 	}
 	
@@ -71,76 +73,50 @@ public class HEHand {
 		board = cards;
 	}
 
-	public void commenceNextRound() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
-		
-		game.notifyObservers(game);
+	@Override
+	protected void commenceMyNextEvent() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		if (game.getActiveSeats().size() == 1) {
 			wrapUp();
-		} else {
-			if (round == null) {
-				Logger.log("--> Activating players.");
-				activateThoseWhoCanPlay();
-				Logger.log("--> Dealing cards to active players.");
-				dealCardsToActivePlayers();
-				Logger.log("Charging Blinds.");
-				charge(getSeatWithNumber(game.getSBPosition()), game.getOptions().getSb());
-				charge(getSeatWithNumber(game.getBBPosition()), game.getOptions().getBb());
-				
-				Logger.log(game.toString());
-				Logger.log("\nPress any key to continue hand...");
-				new Scanner(System.in).nextLine();
-				
-				round = new PreFlop(this);
-				Logger.log("Set Up Preflop...");
-				Logger.log(game.toString());
-				Logger.log("\nPress any key to continue hand...");
-				new Scanner(System.in).nextLine();
-				Logger.log("Commencing " + round.getName());
-				while (round.isNotComplete()) {
-					round.commenceNextAction();
-				}			
-				handleExcessBets();
-			}
-			else {
-				
-				String roundName = round.getName().toLowerCase();
-			
-				if (roundName.equals("pre flop")) {
-				
-					round = new Flop(this);
-					Logger.log("Commencing " + round.getName());
-					while (round.isNotComplete()) {
-						round.commenceNextAction();
-					}
-
-					handleExcessBets();
-				}
-				else if (roundName.equals("flop")) {
-					round = new Turn(this);
-					Logger.log("Commencing " + round.getName());
-					while (round.isNotComplete()) {
-						round.commenceNextAction();
-					}
-
-					handleExcessBets();
-				}
-				else if (roundName.equals("turn")) {
-					round = new River(this);
-					Logger.log("Commencing " + round.getName());
-					while (round.isNotComplete()) {
-						round.commenceNextAction();
-					}
-
-					handleExcessBets();
-				}
-				else if (roundName.equals("river")) {
-					round = null;
-					Logger.log("Commencing Showdown");
-					commenceShowDown(false);
-					wrapUp();
-				}
-			}
+			return;
 		}
+		
+		if (round == null) {
+			startNewRound();
+			game.addMessage("Dealt new hand. Charged Blinds.");
+			child = round;
+			return;
+		}
+		
+		handleExcessBets();
+		String roundName = round.getName().toLowerCase();
+		
+		if (roundName.equals("pre flop")) {		
+			round = new Flop(this);
+			game.addMessage("Starting " + round.getName() + ".");
+		}
+		else if (roundName.equals("flop")) {
+			round = new Turn(this);
+			game.addMessage("Starting " + round.getName() + ".");
+		}
+		else if (roundName.equals("turn")) {
+			round = new River(this);
+			game.addMessage("Starting " + round.getName() + ".");
+		}
+		else if (roundName.equals("river")) {
+			round = null;
+			game.addMessage("Starting SHOWDOWN!");
+			commenceShowDown(false);
+			wrapUp();
+		}
+		
+	}
+	
+	private void startNewRound() throws Exception {
+		activateThoseWhoCanPlay();
+		dealCardsToActivePlayers();
+		charge(getSeatWithNumber(game.getSBPosition()), game.getOptions().getSb());
+		charge(getSeatWithNumber(game.getBBPosition()), game.getOptions().getBb());
+		round = new PreFlop(this);
 	}
 
 	private void handleExcessBets() {
@@ -150,6 +126,9 @@ public class HEHand {
 				Seat s = entry.getKey();
 				int amount = entry.getValue();
 				Logger.log("Returning " + amount + " excess chips from bet to " + s.getPlayerName());
+				if (amount > 0) {
+					game.addMessage("Returned " + amount + " excess bet chips " + s.getPlayerName());
+				}
 				pot.reduceContribution(s, amount);
 				s.modChips(amount);
 			}
@@ -190,8 +169,8 @@ public class HEHand {
 		for (Seat s: seats) {
 			s.clearHand();
 		}
-		game.notifyObservers(game);
-		complete = true;	
+		isComplete = true;	
+		game.addMessage("The round is complete!");
 	}
 
 	private void dealCardsToActivePlayers() {
@@ -268,7 +247,7 @@ public class HEHand {
 			}	
 		}
 		
-		complete = true;
+		isComplete = true;
 	}
 	
 	public String boardStr() {
@@ -327,13 +306,6 @@ public class HEHand {
 		return evals;
 	}
 
-	public boolean isComplete() {
-		return complete;
-	}
-	public boolean isNotComplete() {
-		return !complete;
-	}
-
 	public void setDeck(Deck _deck) {
 		deck = _deck;
 	}
@@ -364,7 +336,7 @@ public class HEHand {
 
 	public String getSummaryStr() {
 		String str = "| ";
-		if (complete) {
+		if (isComplete) {
 			str += "Hand is Completed.\n";
 		} else {
 			str += "Hand in Progress.\n";
@@ -430,4 +402,16 @@ public class HEHand {
 	public void addToBoard(List<Card> deal) {
 		board.addAll(deal);
 	}
+
+	public int getActingPosition() {
+		if (round != null) {
+			return round.getActingPosition();
+		}
+		return -1;
+	}
+
+	public List<Card> getBoard() {
+		return board;
+	}
+
 }
