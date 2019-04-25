@@ -18,6 +18,8 @@ import GameRunning.HEGame.Rounds.HERound;
 import GameRunning.HEGame.Rounds.PreFlop;
 import GameRunning.HEGame.Rounds.River;
 import GameRunning.HEGame.Rounds.Turn;
+import HandEvaluation.HandEvaluatorCardCountProblem;
+import HandEvaluation.Util.KickerFillProblem;
 import Players.AlwaysFold;
 import Players.Player;
 
@@ -56,21 +58,21 @@ public class TestHERound {
 		return hand;
 	}
 
-	private HERound getBasicPreFlop() throws Exception {
+	private HERound getBasicPreFlop() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		return new PreFlop(getBasicHand());
 	}
-	private HERound getBasicFlop() throws Exception {
+	private HERound getBasicFlop() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		return new Flop(getBasicHand());
 	}
-	private HERound getBasicTurn() throws Exception {
+	private HERound getBasicTurn() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		return new Turn(getBasicHand());
 	}
-	private HERound getBasicRiver() throws Exception {
+	private HERound getBasicRiver() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		return new River(getBasicHand());
 	}
 	
 	@Test
-	void PreFlopDealsNoCards() throws Exception {
+	void PreFlopDealsNoCards() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		HERound round = new PreFlop(getBasicHand());
 		List<Card> dealt = round.getDeal();
 		
@@ -78,7 +80,7 @@ public class TestHERound {
 	}
 	
 	@Test
-	void FlopDeals3Cards() throws Exception {
+	void FlopDeals3Cards() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		HERound round = new Flop(getBasicHand());
 		List<Card> dealt = round.getDeal();
 		
@@ -86,7 +88,7 @@ public class TestHERound {
 	}
 	
 	@Test
-	void TurnDeals1Card() throws Exception {
+	void TurnDeals1Card() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		HERound round = new Turn(getBasicHand());
 		List<Card> dealt = round.getDeal();
 		
@@ -94,7 +96,7 @@ public class TestHERound {
 	}
 	
 	@Test
-	void RiverDeals1Card() throws Exception {
+	void RiverDeals1Card() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		HERound round = new River(getBasicHand());
 		List<Card> dealt = round.getDeal();
 		
@@ -102,7 +104,7 @@ public class TestHERound {
 	}
 	
 	@Test
-	void RoundsGetCorrectNames() throws Exception {
+	void RoundsGetCorrectNames() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		assertEquals(new PreFlop(getBasicHand()).getName(), "Pre Flop");
 		assertEquals(new Flop(getBasicHand()).getName(), "Flop");
 		assertEquals(new Turn(getBasicHand()).getName(), "Turn");
@@ -110,7 +112,7 @@ public class TestHERound {
 	}
 	
 	@Test
-	void RoundsSetCorrectStartingBet() throws Exception {
+	void RoundsSetCorrectStartingBet() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		assertEquals(new PreFlop(getBasicHand()).getCurrentBet(), 100);
 		assertEquals(new Flop(getBasicHand()).getCurrentBet(), 0);
 		assertEquals(new Turn(getBasicHand()).getCurrentBet(), 0);
@@ -118,7 +120,7 @@ public class TestHERound {
 	}
 	
 	@Test
-	void setFirstToAct() throws Exception {
+	void setFirstToAct() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		HERound preflop = new PreFlop(getBasicHand());
 		HERound flop	= new Flop(getBasicHand());
 		HERound turn 	= new Turn(getBasicHand());

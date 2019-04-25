@@ -70,4 +70,12 @@ public class Deck {
 			this.cards.add(new Card(value, Suits.Spades));
 		}
 	}
+
+	public List<Card> getRemainingCards() {
+		List<Card> remain = new ArrayList<Card>();
+		for (int i = nextCardIndex; i < cards.size(); i++) {
+			remain.add(new Card(cards.get(i).getValue(), cards.get(i).getSuit()));
+		}
+		return remain;
+	}
 }

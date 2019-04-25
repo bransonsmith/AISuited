@@ -2,6 +2,7 @@ import java.awt.*;
 import javax.swing.JFrame;
 
 import Common.Colors;
+import Common.Fonts;
 import GameObjects.Card;
 import GameObjects.Suits;
 
@@ -10,7 +11,8 @@ import java.util.List;
 
 import GameRunning.Seat;
 import GameRunning.HEGame.HEGame;
-import GameRunning.HEGame.Hands.HandStatus; 
+import GameRunning.HEGame.Hands.HandStatus;
+import WinPercentage.WinPercent; 
 
 public class Display extends Canvas implements Observer {
 	
@@ -26,8 +28,8 @@ public class Display extends Canvas implements Observer {
 		setGame(_game);
 		JFrame f=new JFrame();  
         f.add(this);  
-        width = 800;
-        height = 600;
+        width = 1000;
+        height = 1000;
         f.setSize(width, height);  
         //f.setLayout(null);  
         f.setVisible(true);
@@ -43,6 +45,7 @@ public class Display extends Canvas implements Observer {
 
 	public void paint(Graphics g) {  
 		updateCount++;
+		g.setFont(Fonts.pot);
 		if (game == null) {
 	        g.drawString("NULL GAME " + updateCount,10,10);  
 		} else {
@@ -56,8 +59,8 @@ public class Display extends Canvas implements Observer {
 	        	}
 	        }
 	        
-	        drawMiddleOfTable(g, new Coord(260, 200));
-	        drawMessageBoard(g, new Coord(170, 310));
+	        drawMiddleOfTable(g, new Coord(190, 200));
+	        drawMessageBoard(g, new Coord(200, 480));
 		} 
           
     }  
@@ -66,8 +69,8 @@ public class Display extends Canvas implements Observer {
 	private List<Coord> getSeatCoords() {
 		List<Coord> coords = new ArrayList<Coord>();
 
-		int hor = 160;
-		int ver = 120;
+		int hor = 190;
+		int ver = 180;
 		int x = 40;
 		int y = 80;
 		
@@ -88,10 +91,10 @@ public class Display extends Canvas implements Observer {
 	}
 	
 	private void drawSeat(Graphics g, Seat s, Coord c) {
-		int wd = 120;
-		int ht = 90;
+		int wd = 140;
+		int ht = 105;
 		boolean folded = false;
-		g.setColor(Colors.SeatBackground);		
+		g.setColor(Colors.SeatBackground);	
 		if (game.getHand() != null) {
 			if (game.getHand().getActingPosition() == s.getNumber()) {
 				g.setColor(Colors.SeatActing);
@@ -117,9 +120,12 @@ public class Display extends Canvas implements Observer {
 				g.setColor(Colors.SeatBustedText);
 			}
 			if (game.getHand() != null) {
+				g.setFont(Fonts.playerText);
 				g.drawString("(" + game.getHand().getPosStr(s) + ")", c.x + 90, c.y + 15);
 			}
+			g.setFont(Fonts.playerName);
 			g.drawString(s.getNumber() + ". " + s.getPlayerName(), c.x + 2, c.y + 15);
+			g.setFont(Fonts.playerText);
 			g.drawString(s.getStatusString(), c.x + 2, c.y + 45);
 			g.drawString(s.getChipString(), c.x + 2, c.y + 60);
 			if (s.getHoleCards() != null && s.getHoleCards().size() > 1) {
@@ -131,6 +137,7 @@ public class Display extends Canvas implements Observer {
 			if (s.getHandStatus() == HandStatus.Busted) {
 				g.setColor(Colors.SeatBustedText);
 			}
+			g.setFont(Fonts.playerText);
 			g.drawString("" + s.getNumber(), c.x + 2, c.y + 45);
 		}
 		
@@ -146,11 +153,10 @@ public class Display extends Canvas implements Observer {
 			tokenX += tokenRad + 2;
 		}
 		if (s.getNumber() == game.getDPosition()) {
-			drawToken(g, " D", Color.WHITE, new Coord(tokenX, tokenY), (int)(tokenRad * 1.2));
+			drawToken(g, "  D", Color.WHITE, new Coord(tokenX, tokenY), (int)(tokenRad * 1.2));
 			tokenX += tokenRad + 2;
 		}
-		
-		
+
 	}
 	
 	private void drawCard(Graphics g, Card c, int x, int y, boolean faded) {
@@ -173,6 +179,7 @@ public class Display extends Canvas implements Observer {
 			}
 		}
 		
+		g.setFont(Fonts.card);
 		g.drawString(c.toString(), x + 2, y + 6);
 	}
 
@@ -184,29 +191,84 @@ public class Display extends Canvas implements Observer {
 		g.drawOval(coord.x, coord.y, size, size);
 		
 		g.setColor(Color.BLACK);
+		g.setFont(Fonts.token);
 		g.drawString(label, (int)(coord.x + 3), coord.y + 15);
 	}
 	
 	private void drawMiddleOfTable(Graphics g, Coord c) {
-		int wd = 180;
-		int ht = 100;
-		g.setColor(Colors.SeatBackground);
+		int wd = 410;
+		int ht = 265;
+		g.setColor(Colors.MiddleBackground);
 		g.fillRect(c.x, c.y, wd, ht);
 		
-		g.setColor(Colors.SeatOutline);
+		g.setColor(Colors.MiddleOutline);
 		g.drawRect(c.x, c.y, wd, ht);
 		
-		g.setColor(Colors.SeatText);
+		g.setColor(Colors.MiddleText);
 		int pot = 0;
 		if (game.getHand() != null) {
 			pot = game.getHand().getPot().getTotal();
-			drawBoard(g, game.getHand().getBoard(), c.x + 40, c.y + 80);
+			drawBoard(g, game.getHand().getBoard(), c.x + 40, c.y + 35);
 		}
-		g.drawString("POT (" + pot + ")", c.x + 40, c.y + 40);
+		g.setFont(Fonts.playerName);
+		g.setColor(Colors.MiddleText);
+		g.drawString("POT ", c.x + 40, c.y + 55);
+		g.setFont(Fonts.pot);
+		g.setColor(Colors.Pot);
+		g.drawString("" + pot, c.x + 70, c.y + 60);
 		///g.drawString(s.getStatusString(), c.x + 2, c.y + 45);
 		///g.drawString(s.getChipString(), c.x + 2, c.y + 60);
 		//g.drawString(s.getCardString(), c.x + 2, c.y + 75);
-		
+		if (game.getHand() != null) {
+			int outX = c.x + 2; 
+			int outY = c.y + 75;
+			
+			for (Seat s: game.getActiveSeats()) {
+				WinPercent winPercent = game.getHand().getWinPercentForSeat(s);
+				int cardWidth = 20;
+				if (winPercent != null) {
+					int nameX = c.x + 2;
+					drawCard(g, s.getHoleCards().get(0), nameX, outY, false);
+					drawCard(g, s.getHoleCards().get(1), nameX + 22, outY, false);
+
+					int outStartX = c.x + 160 + 4;
+					int outStartY = outY;
+					outX = outStartX; 
+
+					if (winPercent.getPercent() == 100) {
+						g.setColor(Colors.MiddleWinner);
+						g.setFont(Fonts.percentWinner);
+					}
+					else if (winPercent.getPercent() == 0) {
+						g.setColor(Colors.MiddleLoser);
+						g.setFont(Fonts.percentage);
+					}
+					else {
+						g.setColor(Colors.MiddleText);
+						g.setFont(Fonts.percentage);
+					}
+					g.drawString(String.format("%-10s", s.getPlayerName()) + " " + String.format("%-5.2f", winPercent.getPercent()) + "%", nameX + 43, outY);	
+					
+					if (winPercent.getPercent() <= 50) {
+						if (winPercent.getOuts().size() > 0) {
+							g.setColor(Colors.MiddleText);
+							g.setFont(Fonts.percentage);
+							g.drawString("OUTS->", nameX + 119, outStartY + 12);
+						}
+						for (Card o: winPercent.getOuts()) {
+							if (outX > c.x + wd - cardWidth) {
+								outY += 35;
+								outX = outStartX;
+							}
+							drawCard(g, o, outX, outY, false);
+							outX += cardWidth + 2;
+							
+						}
+					}
+					outY += 50;
+				}
+			}
+		}
 	}
 	
 	
@@ -214,6 +276,18 @@ public class Display extends Canvas implements Observer {
 		if (board == null) {
 			board = new ArrayList<Card>();
 		}
+		
+		int outLineWD = 140;
+		int outLineHT = 40;
+		int outLineX = x - 10;
+		int outLineY = y - 32;
+		
+		g.setColor(Color.LIGHT_GRAY);
+		g.fillRect(outLineX, outLineY, outLineWD, outLineHT);
+		
+		g.setColor(Color.BLACK);
+		g.drawRect(outLineX, outLineY, outLineWD, outLineHT);
+		
 		int drawnCards = 0;
 		int cardX = x;
 		for (Card c: board) {
@@ -231,7 +305,7 @@ public class Display extends Canvas implements Observer {
 	}
 
 	private void drawMessageBoard(Graphics g, Coord c) {
-		int wd = 340;
+		int wd = 385;
 		int ht = 120;
 		g.setColor(Colors.MessageBoardBackground);
 		g.fillRect(c.x, c.y, wd, ht);
@@ -239,6 +313,7 @@ public class Display extends Canvas implements Observer {
 		g.setColor(Colors.MessageBoardOutline);
 		g.drawRect(c.x, c.y, wd, ht);
 		
+		g.setFont(Fonts.message);
 		g.setColor(Colors.MessageBoardText);
 		for (int i = 0; i < game.getMessages().size(); i++) {
 			g.drawString(game.getMessages().get(i), c.x + 2, c.y + 15 + (i * 15));

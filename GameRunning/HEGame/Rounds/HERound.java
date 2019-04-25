@@ -59,7 +59,13 @@ public abstract class HERound extends IEventer {
 			
 		} else if (state == null) {
 
-			decision = getPlayerDecision();
+			decision = null;
+			while (decision == null) {
+				decision = getPlayerDecision();
+				if (decision == null) {
+					actingPosition = getNextPositionNumber(actingPosition);
+				}
+			}
 			state = "have answer";
 			
 		} else if (state.equals("have answer")) {
@@ -191,6 +197,17 @@ public abstract class HERound extends IEventer {
 		return null;
 	}
 
+	protected List<Seat> getActiveSeats() {
+		List<Seat> activeSeats = new ArrayList<Seat>();
+
+		for (Seat s: seats) {
+			if (s.isActive()) {
+				activeSeats.add(s);
+			}
+		}
+		return activeSeats;
+	}
+	
 	protected void setStartingRoundStatuses() throws Exception {
 		for (Seat s: seats) {
 			switch (s.getHandStatus()) {

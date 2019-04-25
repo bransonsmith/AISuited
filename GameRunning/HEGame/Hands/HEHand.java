@@ -24,6 +24,7 @@ import HandEvaluation.HandEvaluation;
 import HandEvaluation.HandEvaluator;
 import HandEvaluation.HandEvaluatorCardCountProblem;
 import HandEvaluation.Util.KickerFillProblem;
+import WinPercentage.WinPercent;
 
 public class HEHand extends IEventer {
 
@@ -33,6 +34,7 @@ public class HEHand extends IEventer {
 	private Pot pot;
 	private HERound round;
 	private List<Card> board;
+	private List<WinPercent> winPercentages;
 	
 	public HEHand(HEGame _game) {
 		setGame(_game);
@@ -44,6 +46,7 @@ public class HEHand extends IEventer {
 		isComplete = false;
 		child = null;
 		activateEligiblePlayers();
+		winPercentages = null;
 	}
 	
 	public HEHand(HEGame _game, boolean cheese) {
@@ -59,6 +62,7 @@ public class HEHand extends IEventer {
 		isComplete = false;
 		child = null;
 		activateEligiblePlayers();
+		winPercentages = null;
 	}
 	
 	private void activateEligiblePlayers() {
@@ -86,9 +90,11 @@ public class HEHand extends IEventer {
 			child = round;
 			return;
 		}
-		
-		handleExcessBets();
+
 		String roundName = round.getName().toLowerCase();
+		if (!roundName.equals("river")) {
+			handleExcessBets();
+		}
 		
 		if (roundName.equals("pre flop")) {		
 			round = new Flop(this);
@@ -111,7 +117,7 @@ public class HEHand extends IEventer {
 		
 	}
 	
-	private void startNewRound() throws Exception {
+	private void startNewRound() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		activateThoseWhoCanPlay();
 		dealCardsToActivePlayers();
 		charge(getSeatWithNumber(game.getSBPosition()), game.getOptions().getSb());
@@ -164,12 +170,16 @@ public class HEHand extends IEventer {
 			Logger.log("Well played " + as.get(0).getPlayerName());
 			int winnings = pot.getTotal();
 			as.get(0).modChips(winnings);
-			Logger.log(as.get(0).getPlayerName() + " won " + winnings + " chips!");
+			if (winnings > 0) {
+				game.addMessage(as.get(0).getPlayerName() + " won " + winnings + " chips!");
+				Logger.log(as.get(0).getPlayerName() + " won " + winnings + " chips!");
+			}
 		}
 		for (Seat s: seats) {
 			s.clearHand();
 		}
 		isComplete = true;	
+		winPercentages = null;
 		game.addMessage("The round is complete!");
 	}
 
@@ -206,7 +216,6 @@ public class HEHand extends IEventer {
 					List<Card> allCards = new ArrayList<Card>();
 					allCards.addAll(s.getHoleCards());
 					allCards.addAll(board);
-					game.addMessage("| " + tierNum + ". " + String.format("%-20s", s.getPlayerName()) + " -> " + HandEvaluator.getHoldEmHandEvaluation(allCards));
 					Logger.log("| " + tierNum + ". " + String.format("%-20s", s) + " -> " + HandEvaluator.getHoldEmHandEvaluation(allCards));
 				}
 				tierNum++;
@@ -222,6 +231,9 @@ public class HEHand extends IEventer {
 					Logger.log(soleWinner.getPlayerName() + " won " + winnings + " chips!");
 				}
 				soleWinner.modChips(winnings);
+				if (winnings > 0) {
+					game.addMessage(soleWinner.getPlayerName() + " won " + winnings + " chips!");
+				}
 			} else {
 				List<Seat> sortedTier = getSortedSeatsByContribution(entry.getValue());
 				
@@ -241,6 +253,9 @@ public class HEHand extends IEventer {
 							Logger.log(payMe.getPlayerName() + " won " + seatWinnings + " chips!");
 						}
 						payMe.modChips(seatWinnings);
+						if (seatWinnings > 0) {
+							game.addMessage(payMe.getPlayerName() + " won " + seatWinnings + " chips!");
+						}
 					}
 					sortedTier.remove(0);
 				}
@@ -413,5 +428,22 @@ public class HEHand extends IEventer {
 	public List<Card> getBoard() {
 		return board;
 	}
+
+	public void setWinPercentages(List<WinPercent> _winPercentages) {
+		winPercentages = _winPercentages;		
+	}
+
+	public WinPercent getWinPercentForSeat(Seat s) {
+		if (winPercentages == null) {
+			return null;
+		}
+		for (WinPercent wp: winPercentages) {
+			if (wp.getSeat().equals(s)) {
+				return wp;
+			}
+		}
+		return null;
+	}
+
 
 }

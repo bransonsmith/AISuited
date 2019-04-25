@@ -1,8 +1,14 @@
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import Common.Logger;
+import GameObjects.Card;
+import GameObjects.Suits;
 import GameRunning.Seat;
 import GameRunning.HEGame.HEGame;
 import GameRunning.HEGame.HEOptions;
@@ -17,8 +23,7 @@ public class ManualInterface {
 
 	public static void main(String[] args) throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		
-	
-
+		
 		Scanner kb = new Scanner(System.in);
 		
 		List<Player> players = new ArrayList<Player>();
@@ -59,7 +64,7 @@ public class ManualInterface {
 		
 	}
 	
-	 
+	
 	
 
 
