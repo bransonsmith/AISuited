@@ -1,8 +1,6 @@
 # NLHEAI
 Pit Texas Hold Em AIs against each other
 
-Right now, only the hand evaluation logic is in place. Texas Hold Em game run to come...
-
 Pull down the code.
 You'll implement a Player. (Extend the abstract Player class).
 You'll get an object of all of the information a player at the table would know,
