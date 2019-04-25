@@ -17,7 +17,7 @@ Click in your console... now repeatedly hit enter to progress the game forward o
         2. Implement the getDecision method.
                 - You'll receive a context object that includes all of the information a player would have
                 at the time they need to make their decision (This may not be fully implemented yet... see Issues^). 
-                - You then return a decision object with a decision type (Fold, Check, Call, Raise) and an amount of chips if                           applicable.
+                - You then return a decision object with a decision type (Fold, Check, Call, Raise) and an amount of chips if      applicable.
                 
         There are some simple examples in the Player package, and one below
 ----------------------------------------------------------------------------------------------------------------    
