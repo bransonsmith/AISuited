@@ -1,21 +1,17 @@
 package GameRunning.HEGame;
 
-import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Observable;
 import java.util.Random;
-import java.util.Scanner;
 
-import Common.Logger;
 import GameRunning.IEventer;
 import GameRunning.Seat;
 import GameRunning.HEGame.Hands.HEHand;
 import GameRunning.HEGame.Hands.HandStatus;
 import HandEvaluation.HandEvaluatorCardCountProblem;
 import HandEvaluation.Util.KickerFillProblem;
-import Players.Player;
 
 public class HEGame extends Observable {
 

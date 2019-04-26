@@ -19,7 +19,6 @@ public class River extends HERound {
 		try {
 			List<Seat> activeSeats = getActiveSeats();
 			List<Card> board = hand.getBoard();
-			List<Card> deck = hand.getDeck().getRemainingCards();
 			
 			List<WinPercent> winPercentages = WinPercentageCalculator.getWinPercents(activeSeats, board);
 			hand.setWinPercentages(winPercentages);

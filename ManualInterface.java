@@ -1,21 +1,12 @@
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import Common.Logger;
-import GameObjects.Card;
-import GameObjects.Suits;
 import GameRunning.Seat;
 import GameRunning.HEGame.HEGame;
 import GameRunning.HEGame.HEOptions;
 import HandEvaluation.HandEvaluatorCardCountProblem;
 import HandEvaluation.Util.KickerFillProblem;
-import Players.AlwaysAllIn;
-import Players.AlwaysFold;
 import Players.Player;
 import Players.Rock;
 
@@ -62,10 +53,6 @@ public class ManualInterface {
 			
 		}
 		
+		kb.close();
 	}
-	
-	
-	
-
-
 }

@@ -3,7 +3,6 @@ package GameRunning.Decisions;
 import java.util.ArrayList;
 import java.util.List;
 
-import Common.Logger;
 import GameObjects.Card;
 import GameRunning.Seat;
 import GameRunning.HEGame.Hands.HandStatus;

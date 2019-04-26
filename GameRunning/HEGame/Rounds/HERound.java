@@ -1,9 +1,7 @@
 package GameRunning.HEGame.Rounds;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
 
 import Common.Logger;
 import GameObjects.Card;
@@ -83,7 +81,7 @@ public abstract class HERound extends IEventer {
 		Seat choiceMaker = getSeatWithNumber(actingPosition);
 		
 		if (choiceMaker.getRoundStatus() == RoundStatus.Unsettled) {
-			DecisionContext context = new DecisionContext(choiceMaker);
+			DecisionContext context = new DecisionContext(choiceMaker, game.getSeats(), game);
 			game.addMessage("" + choiceMaker.getPlayerName() + ", What would you like to do?");
 			decision = choiceMaker.getPlayer().getDecision(context);
 		}
@@ -176,16 +174,6 @@ public abstract class HERound extends IEventer {
 			return seats.get(0).getNumber();
 		}
 		return seats.get(currentSeatIndex + 1).getNumber();
-	}
-
-	private List<Integer> getAllSeatNums() {
-		List<Integer> seatNums = new ArrayList<Integer>();
-		
-		for (Seat s: seats) {
-			seatNums.add(s.getNumber());
-		}
-		
-		return seatNums;
 	}
 
 	private Seat getSeatWithNumber(int seatNum) {

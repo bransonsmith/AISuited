@@ -15,8 +15,8 @@ import GameRunning.HEGame.Hands.HandStatus;
 import WinPercentage.WinPercent; 
 
 public class Display extends Canvas implements Observer {
-	
-	private java.util.List<String> messages;
+
+	private static final long serialVersionUID = 1L;
 	private HEGame game;
 	private int updateCount;
 	private java.util.List<Color> theme;
@@ -35,7 +35,6 @@ public class Display extends Canvas implements Observer {
         f.setVisible(true);
         updateCount = 0;
         setThemeColors();
-        messages = new ArrayList<String>();
 	}
 	
 	private void setThemeColors() {

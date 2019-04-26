@@ -57,19 +57,6 @@ public class TestHERound {
 		HEHand hand = new HEHand(game);
 		return hand;
 	}
-
-	private HERound getBasicPreFlop() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
-		return new PreFlop(getBasicHand());
-	}
-	private HERound getBasicFlop() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
-		return new Flop(getBasicHand());
-	}
-	private HERound getBasicTurn() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
-		return new Turn(getBasicHand());
-	}
-	private HERound getBasicRiver() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
-		return new River(getBasicHand());
-	}
 	
 	@Test
 	void PreFlopDealsNoCards() throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
