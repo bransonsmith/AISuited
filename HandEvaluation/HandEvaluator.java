@@ -21,7 +21,7 @@ import HandEvaluation.Util.KickerFiller;
 public class HandEvaluator {
 
 	private final static int EXPECTED_CARDS = Constants.CARDS_IN_HAND_EVALUATION();
-	
+
 	public static HandEvaluation getHoldEmHandEvaluation(List<Card> hand) throws HandEvaluatorCardCountProblem, KickerFillProblem {
 		
 		validateHand(hand);

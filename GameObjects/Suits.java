@@ -4,5 +4,7 @@ public enum Suits {
 	Diamonds,
 	Clubs,
 	Hearts,
-	Spades
+	Spades, 
+	FillerA,
+	FillerB
 }
