@@ -8,9 +8,10 @@ import GameRunning.HEGame.HEGame;
 
 public class DecisionContext {
 
-	MyInfo myInfo;
-	List<PublicSeatInfo> allPlayersInfo;
-	PublicGameInfo gameInfo;
+	private MyInfo myInfo;
+	private List<PublicSeatInfo> allPlayersInfo;
+	private PublicGameInfo gameInfo;
+	private int currentBet;
 	
 	public DecisionContext(Seat _myInfo, List<Seat> _allPlayers, HEGame _game) {
 		// DONT SET ANYTHING BY REFERENCE! PLAYERS CAN ACCESS THIS DATA!
@@ -27,6 +28,11 @@ public class DecisionContext {
 	
 	private void setGameInfo(HEGame _game) {
 		gameInfo = new PublicGameInfo(_game);
+		if (_game.getHand() != null && _game.getHand().getRound() != null) {
+			currentBet = _game.getHand().getRound().getCurrentBet();
+		} else {
+			currentBet = 0;
+		}
 	}
 	private void setOtherPlayersInfo(List<Seat> _allPlayers, HEGame _game) {
 		allPlayersInfo = new ArrayList<PublicSeatInfo>();
@@ -36,6 +42,14 @@ public class DecisionContext {
 	}
 	private void setMyInfo(Seat _myInfo) {
 		myInfo = new MyInfo(_myInfo);
+	}
+
+	public int getNeededToCall() {
+		return currentBet;
+	}
+
+	public int getCurrentBet() {
+		return currentBet;
 	}
 
 

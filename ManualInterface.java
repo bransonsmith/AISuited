@@ -9,6 +9,7 @@ import HandEvaluation.HandEvaluatorCardCountProblem;
 import HandEvaluation.Util.KickerFillProblem;
 import Players.Player;
 import Players.Rock;
+import Players.SimpleSteve;
 
 public class ManualInterface {
 
@@ -18,15 +19,15 @@ public class ManualInterface {
 		Scanner kb = new Scanner(System.in);
 		
 		List<Player> players = new ArrayList<Player>();
-		players.add(new Rock("Branson", "Branson"));
-		players.add(new Rock("Trent", "Trent"));
-		players.add(new Rock("Max", "Max"));
-		players.add(new Rock("Alec", "Alec"));
-		players.add(new Rock("the Baz", "Tubz"));
-		players.add(new Rock("Mamaux", "Mamaux"));
-		players.add(new Rock("Ian", "Ian"));
-		players.add(new Rock("Sheu", "Sheu"));
-		players.add(new Rock("McCrae", "McCrae"));
+		players.add(new SimpleSteve("Branson", "Branson"));
+		players.add(new SimpleSteve("Trent", "Trent"));
+		players.add(new SimpleSteve("Max", "Max"));
+		players.add(new SimpleSteve("Alec", "Alec"));
+		players.add(new SimpleSteve("the Baz", "Tubz"));
+		players.add(new SimpleSteve("Mamaux", "Mamaux"));
+		players.add(new SimpleSteve("Ian", "Ian"));
+		players.add(new SimpleSteve("Sheu", "Sheu"));
+		players.add(new SimpleSteve("McCrae", "McCrae"));
 		
 		HEOptions options = new HEOptions(1000, 50, 100);
 		

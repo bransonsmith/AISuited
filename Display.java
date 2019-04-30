@@ -64,7 +64,87 @@ public class Display extends Canvas implements Observer {
           
     }  
 
+	private void drawMiddleOfTable(Graphics g, Coord c) {
+		int wd = 410;
+		int ht = 265;
+		g.setColor(Colors.MiddleBackground);
+		g.fillRect(c.x, c.y, wd, ht);
+		
+		g.setColor(Colors.MiddleOutline);
+		g.drawRect(c.x, c.y, wd, ht);
+		
+		g.setColor(Colors.MiddleText);
+		int pot = 0;
+		if (game.getHand() != null) {
+			pot = game.getHand().getPot().getTotal();
+			drawBoard(g, game.getHand().getBoard(), c.x + 40, c.y + 35);
+		
+			if (game.getHand().getRound() != null) {
+				g.drawString("Current Bet: " + game.getHand().getRound().getCurrentBet(), c.x + 190, c.y + 55);
+			}
+		}
+		g.setFont(Fonts.playerName);
+		g.setColor(Colors.MiddleText);
+		g.drawString("POT ", c.x + 40, c.y + 55);
+		g.setFont(Fonts.pot);
+		g.setColor(Colors.Pot);
+		g.drawString("" + pot, c.x + 70, c.y + 60);
+		///g.drawString(s.getStatusString(), c.x + 2, c.y + 45);
+		///g.drawString(s.getChipString(), c.x + 2, c.y + 60);
+		//g.drawString(s.getCardString(), c.x + 2, c.y + 75);
+		if (game.getHand() != null) {
+			int outX = c.x + 2; 
+			int outY = c.y + 75;
+			
+			for (Seat s: game.getActiveSeats()) {
+				WinPercent winPercent = game.getHand().getWinPercentForSeat(s);
+				int cardWidth = 20;
+				if (winPercent != null) {
+					int nameX = c.x + 2;
+					drawCard(g, s.getHoleCards().get(0), nameX, outY, false);
+					drawCard(g, s.getHoleCards().get(1), nameX + 22, outY, false);
 
+					int outStartX = c.x + 160 + 4;
+					int outStartY = outY;
+					outX = outStartX; 
+
+					if (winPercent.getPercent() == 100) {
+						g.setColor(Colors.MiddleWinner);
+						g.setFont(Fonts.percentWinner);
+					}
+					else if (winPercent.getPercent() == 0) {
+						g.setColor(Colors.MiddleLoser);
+						g.setFont(Fonts.percentage);
+					}
+					else {
+						g.setColor(Colors.MiddleText);
+						g.setFont(Fonts.percentage);
+					}
+					g.drawString(String.format("%-10s", s.getPlayerName()) + " " + String.format("%-5.2f", winPercent.getPercent()) + "%", nameX + 43, outY);	
+					
+					if (winPercent.getPercent() <= 50) {
+						if (winPercent.getOuts().size() > 0) {
+							g.setColor(Colors.MiddleText);
+							g.setFont(Fonts.percentage);
+							g.drawString("OUTS->", nameX + 119, outStartY + 12);
+						}
+						for (Card o: winPercent.getOuts()) {
+							if (outX > c.x + wd - cardWidth) {
+								outY += 35;
+								outX = outStartX;
+							}
+							drawCard(g, o, outX, outY, false);
+							outX += cardWidth + 2;
+							
+						}
+					}
+					outY += 50;
+				}
+			}
+		}
+	}
+	
+	
 	private List<Coord> getSeatCoords() {
 		List<Coord> coords = new ArrayList<Coord>();
 
@@ -193,83 +273,6 @@ public class Display extends Canvas implements Observer {
 		g.setFont(Fonts.token);
 		g.drawString(label, (int)(coord.x + 3), coord.y + 15);
 	}
-	
-	private void drawMiddleOfTable(Graphics g, Coord c) {
-		int wd = 410;
-		int ht = 265;
-		g.setColor(Colors.MiddleBackground);
-		g.fillRect(c.x, c.y, wd, ht);
-		
-		g.setColor(Colors.MiddleOutline);
-		g.drawRect(c.x, c.y, wd, ht);
-		
-		g.setColor(Colors.MiddleText);
-		int pot = 0;
-		if (game.getHand() != null) {
-			pot = game.getHand().getPot().getTotal();
-			drawBoard(g, game.getHand().getBoard(), c.x + 40, c.y + 35);
-		}
-		g.setFont(Fonts.playerName);
-		g.setColor(Colors.MiddleText);
-		g.drawString("POT ", c.x + 40, c.y + 55);
-		g.setFont(Fonts.pot);
-		g.setColor(Colors.Pot);
-		g.drawString("" + pot, c.x + 70, c.y + 60);
-		///g.drawString(s.getStatusString(), c.x + 2, c.y + 45);
-		///g.drawString(s.getChipString(), c.x + 2, c.y + 60);
-		//g.drawString(s.getCardString(), c.x + 2, c.y + 75);
-		if (game.getHand() != null) {
-			int outX = c.x + 2; 
-			int outY = c.y + 75;
-			
-			for (Seat s: game.getActiveSeats()) {
-				WinPercent winPercent = game.getHand().getWinPercentForSeat(s);
-				int cardWidth = 20;
-				if (winPercent != null) {
-					int nameX = c.x + 2;
-					drawCard(g, s.getHoleCards().get(0), nameX, outY, false);
-					drawCard(g, s.getHoleCards().get(1), nameX + 22, outY, false);
-
-					int outStartX = c.x + 160 + 4;
-					int outStartY = outY;
-					outX = outStartX; 
-
-					if (winPercent.getPercent() == 100) {
-						g.setColor(Colors.MiddleWinner);
-						g.setFont(Fonts.percentWinner);
-					}
-					else if (winPercent.getPercent() == 0) {
-						g.setColor(Colors.MiddleLoser);
-						g.setFont(Fonts.percentage);
-					}
-					else {
-						g.setColor(Colors.MiddleText);
-						g.setFont(Fonts.percentage);
-					}
-					g.drawString(String.format("%-10s", s.getPlayerName()) + " " + String.format("%-5.2f", winPercent.getPercent()) + "%", nameX + 43, outY);	
-					
-					if (winPercent.getPercent() <= 50) {
-						if (winPercent.getOuts().size() > 0) {
-							g.setColor(Colors.MiddleText);
-							g.setFont(Fonts.percentage);
-							g.drawString("OUTS->", nameX + 119, outStartY + 12);
-						}
-						for (Card o: winPercent.getOuts()) {
-							if (outX > c.x + wd - cardWidth) {
-								outY += 35;
-								outX = outStartX;
-							}
-							drawCard(g, o, outX, outY, false);
-							outX += cardWidth + 2;
-							
-						}
-					}
-					outY += 50;
-				}
-			}
-		}
-	}
-	
 	
 	private void drawBoard(Graphics g, List<Card> board, int x, int y) {
 		if (board == null) {

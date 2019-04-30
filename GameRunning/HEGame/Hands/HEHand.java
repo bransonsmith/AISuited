@@ -17,6 +17,7 @@ import GameRunning.HEGame.Rounds.Flop;
 import GameRunning.HEGame.Rounds.HERound;
 import GameRunning.HEGame.Rounds.PreFlop;
 import GameRunning.HEGame.Rounds.River;
+import GameRunning.HEGame.Rounds.Rounds;
 import GameRunning.HEGame.Rounds.Turn;
 import HandEvaluation.HandEvaluation;
 import HandEvaluation.HandEvaluator;
@@ -442,6 +443,9 @@ public class HEHand extends IEventer {
 		}
 		return null;
 	}
-
+	
+	public HERound getRound() {
+		return round;
+	}
 
 }
