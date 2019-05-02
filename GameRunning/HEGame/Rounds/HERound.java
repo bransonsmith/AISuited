@@ -10,8 +10,11 @@ import GameRunning.Seat;
 import GameRunning.Decisions.DecisionContext;
 import GameRunning.Decisions.HEDecision;
 import GameRunning.HEGame.HEGame;
+import GameRunning.HEGame.Pot;
 import GameRunning.HEGame.Hands.HEHand;
 import GameRunning.HEGame.Hands.HandStatus;
+import HandEvaluation.HandEvaluatorCardCountProblem;
+import HandEvaluation.Util.KickerFillProblem;
 
 public abstract class HERound extends IEventer {
 
@@ -24,6 +27,7 @@ public abstract class HERound extends IEventer {
 	protected boolean dealt;
 	private HEDecision decision;
 	private String state;
+	private Pot pot;
 	
 	public HERound(HEHand _hand) throws Exception {
 		setHand(_hand);
@@ -33,6 +37,7 @@ public abstract class HERound extends IEventer {
 		setCurrentBet();
 		setFirstToAct();
 		setStartingRoundStatuses();
+		pot = new Pot();
 		state = null;
 		child = null;
 		decision = null;
@@ -46,16 +51,17 @@ public abstract class HERound extends IEventer {
 	protected abstract void setFirstToAct();
 
 	@Override
-	public void commenceMyNextEvent() {
+	public void commenceMyNextEvent() throws HandEvaluatorCardCountProblem, KickerFillProblem {
 		
 		HEGame game = hand.getGame();
 		if (noPlayersUnsettled()) {
 			
-			game.addMessage("The round is complete!");
+			game.addMessage("No Players Unsettled... The round is complete!");
 			isComplete = true;
 			state = null;
-			
-		} else if (state == null) {
+			return;
+		} 
+		if (state == null) {
 
 			decision = null;
 			while (decision == null) {
@@ -75,7 +81,7 @@ public abstract class HERound extends IEventer {
 		}
 	}
 	
-	private HEDecision getPlayerDecision() {
+	private HEDecision getPlayerDecision() throws HandEvaluatorCardCountProblem, KickerFillProblem {
 		HEGame game = hand.getGame();
 		HEDecision decision = null;
 		Seat choiceMaker = getSeatWithNumber(actingPosition);
@@ -141,7 +147,13 @@ public abstract class HERound extends IEventer {
 
 	private int handleBet(Seat actingSeat, int amount) {
 		Logger.log("------->" + actingSeat.getPlayerName() + " wants to bet " + amount + " chips.");
-		int actualAmount = Math.min(amount, actingSeat.getChips());
+		
+		int currentBetBefore = currentBet;
+		
+		int amountToCall = currentBet - pot.getContributionsTotal(actingSeat);
+		int playerDeclaration = Math.max(amountToCall, amount);
+		
+		int actualAmount = Math.min(actingSeat.getChips(), playerDeclaration);
 		if (actualAmount != amount) {
 			Logger.log("-------->" + actingSeat.getPlayerName() + " Didnt have " + amount + " chips.");
 		}
@@ -149,8 +161,11 @@ public abstract class HERound extends IEventer {
 			actingSeat.setHandStatus(HandStatus.AllIn);
 		}
 		actingSeat.modChips(-1 * actualAmount);
+		pot.addContribution(actingSeat, actualAmount);
 		hand.getPot().addContribution(actingSeat, actualAmount);
-		unsettleOthers(actingSeat);
+		if (currentBet > currentBetBefore) {
+			unsettleOthers(actingSeat);
+		}
 		Logger.log("------>" + actingSeat.getPlayerName() + " bet " + amount + " chips.");
 		currentBet = Math.max(actualAmount, currentBet);
 		return actualAmount;
@@ -253,6 +268,10 @@ public abstract class HERound extends IEventer {
 	
 	private void setHand(HEHand _hand) {
 		hand = _hand;
+	}
+
+	public Pot getPot() {
+		return pot;
 	}
 
 }

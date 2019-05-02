@@ -35,6 +35,7 @@ public class Display extends Canvas implements Observer {
         f.setVisible(true);
         updateCount = 0;
         setThemeColors();
+        f.setBackground(Colors.Background);
 	}
 	
 	private void setThemeColors() {
@@ -43,6 +44,8 @@ public class Display extends Canvas implements Observer {
 	}
 
 	public void paint(Graphics g) {  
+		g.setColor(Colors.Background);
+		g.fillRect(0, 0, 1000, 1000);
 		updateCount++;
 		g.setFont(Fonts.pot);
 		if (game == null) {
@@ -206,6 +209,8 @@ public class Display extends Canvas implements Observer {
 			g.drawString(s.getNumber() + ". " + s.getPlayerName(), c.x + 2, c.y + 15);
 			g.setFont(Fonts.playerText);
 			g.drawString(s.getStatusString(), c.x + 2, c.y + 45);
+			g.setFont(Fonts.pot);
+			g.setColor(Colors.SeatBusted);
 			g.drawString(s.getChipString(), c.x + 2, c.y + 60);
 			if (s.getHoleCards() != null && s.getHoleCards().size() > 1) {
 				drawCard(g, s.getHoleCards().get(0), c.x + 2, c.y + 75, folded);
@@ -234,6 +239,16 @@ public class Display extends Canvas implements Observer {
 		if (s.getNumber() == game.getDPosition()) {
 			drawToken(g, "  D", Color.WHITE, new Coord(tokenX, tokenY), (int)(tokenRad * 1.2));
 			tokenX += tokenRad + 2;
+		}
+		
+		if (game.getHand() != null && game.getHand().getRound() != null) {
+			int playerBet = game.getHand().getRound().getPot().getContributionsTotal(s);
+		
+			if (playerBet > 0) {
+				g.setFont(Fonts.pot);
+				g.setColor(Colors.SeatBusted);
+				g.drawString("" + playerBet, c.x + 102, c.y + 75);
+			}
 		}
 
 	}

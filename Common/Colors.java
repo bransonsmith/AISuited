@@ -6,6 +6,7 @@ public class Colors {
 
 	public static final Color MiddleWinner = new Color(0, 200, 0);
 	public static final Color MiddleLoser = new Color(200, 0, 0);
+	public static final Color Background = new Color(3, 3, 18);
 	public static Color MiddleBackground = new Color(25, 51, 0);
 	public static Color MiddleOutline = new Color(80, 20, 250);
 	public static Color MiddleText =  new Color(255, 247, 165);

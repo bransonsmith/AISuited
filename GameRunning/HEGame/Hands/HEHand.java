@@ -180,6 +180,7 @@ public class HEHand extends IEventer {
 		isComplete = true;	
 		winPercentages = null;
 		game.addMessage("The round is complete!");
+		round = null;
 	}
 
 	private void dealCardsToActivePlayers() {
