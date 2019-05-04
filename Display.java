@@ -69,20 +69,19 @@ public class Display extends Canvas implements Observer {
     }  
 
 	private void drawRoundPot(Graphics g, Coord c) {
-		if (game.getHand() != null &&
-			game.getHand().getRound() != null &&
-			game.getHand().getRound().getPot() != null) {
+		if (game.getRoundPot() != null &&
+			game.getPot() != null) {
 			g.setColor(Colors.SeatText);
 			g.setFont(Fonts.playerText);
 			
-			String roundName = game.getHand().getRound().getName();
+			String roundName = game.getRoundName();
 			int drawHeight = c.y;
 			int lineHeight = (int)(g.getFont().getSize() * 1.5);
 			
 			g.drawString(roundName + " Pot Summary", c.x, drawHeight);
 			drawHeight += lineHeight;
 			
-			for (Map.Entry<Seat, Integer> entry : game.getHand().getRound().getPot().getEntries()) {
+			for (Map.Entry<Seat, Integer> entry : game.getPot().getEntries()) {
 				g.drawString(String.format("| %3s | %-17s | %-8d |", ("" + entry.getKey().getNumber() + ". "), entry.getKey().getPlayerName(), entry.getValue()), c.x, drawHeight);
 				drawHeight += lineHeight;
 			}
@@ -101,12 +100,12 @@ public class Display extends Canvas implements Observer {
 		
 		g.setColor(Colors.MiddleText);
 		int pot = 0;
-		if (game.getHand() != null) {
-			pot = game.getHand().getPot().getTotal();
-			drawBoard(g, game.getHand().getBoard(), c.x + 40, c.y + 35);
+		if (game != null) {
+			pot = game.getPot().getTotal();
+			drawBoard(g, game.getBoard(), c.x + 40, c.y + 35);
 		
-			if (game.getHand().getRound() != null) {
-				g.drawString("Current Bet: " + game.getHand().getRound().getCurrentBet(), c.x + 190, c.y + 55);
+			if (game != null) {
+				g.drawString("Current Bet: " + game.getCurrentBet(), c.x + 190, c.y + 55);
 			}
 		}
 		g.setFont(Fonts.playerName);
@@ -118,12 +117,12 @@ public class Display extends Canvas implements Observer {
 		///g.drawString(s.getStatusString(), c.x + 2, c.y + 45);
 		///g.drawString(s.getChipString(), c.x + 2, c.y + 60);
 		//g.drawString(s.getCardString(), c.x + 2, c.y + 75);
-		if (game.getHand() != null) {
+		if (game != null) {
 			int outX = c.x + 2; 
 			int outY = c.y + 75;
 			
 			for (Seat s: game.getActiveSeats()) {
-				WinPercent winPercent = game.getHand().getWinPercentForSeat(s);
+				WinPercent winPercent = game.getWinPercentForSeat(s);
 				int cardWidth = 20;
 				if (winPercent != null) {
 					int nameX = c.x + 2;
@@ -200,20 +199,18 @@ public class Display extends Canvas implements Observer {
 		int ht = 105;
 		boolean folded = false;
 		g.setColor(Colors.SeatBackground);	
-		if (game.getHand() != null) {
-			if (game.getHand().getActingPosition() == s.getNumber()) {
-				g.setColor(Colors.SeatActing);
-			}
-			if (s.getHandStatus() == HandStatus.Folded) {
-				folded = true;
-				g.setColor(Colors.SeatFolded);
-			}
-			if (s.getHandStatus() == HandStatus.AllIn) {
-				g.setColor(Colors.SeatAllIn);
-			}
-			if (s.getHandStatus() == HandStatus.Busted) {
-				g.setColor(Colors.SeatBusted);
-			}
+		if (game.getActingPosition() == s.getNumber()) {
+			g.setColor(Colors.SeatActing);
+		}
+		if (s.getHandStatus() == HandStatus.Folded) {
+			folded = true;
+			g.setColor(Colors.SeatFolded);
+		}
+		if (s.getHandStatus() == HandStatus.AllIn) {
+			g.setColor(Colors.SeatAllIn);
+		}
+		if (s.getHandStatus() == HandStatus.Busted) {
+			g.setColor(Colors.SeatBusted);
 		}
 		g.fillRect(c.x, c.y, wd, ht);
 		
@@ -223,10 +220,6 @@ public class Display extends Canvas implements Observer {
 			g.setColor(Colors.SeatText);
 			if (s.getHandStatus() == HandStatus.Busted) {
 				g.setColor(Colors.SeatBustedText);
-			}
-			if (game.getHand() != null) {
-				g.setFont(Fonts.playerText);
-				g.drawString("(" + game.getHand().getPosStr(s) + ")", c.x + 90, c.y + 15);
 			}
 			g.setFont(Fonts.playerName);
 			g.drawString(s.getNumber() + ". " + s.getPlayerName(), c.x + 2, c.y + 15);
@@ -264,8 +257,8 @@ public class Display extends Canvas implements Observer {
 			tokenX += tokenRad + 2;
 		}
 		
-		if (game.getHand() != null && game.getHand().getRound() != null) {
-			int playerBet = game.getHand().getRound().getPot().getContributionsTotal(s);
+		if (game.getPot() != null) {
+			int playerBet = game.getPot().getContributionsTotal(s);
 		
 			if (playerBet > 0) {
 				g.setFont(Fonts.pot);

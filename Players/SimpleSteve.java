@@ -145,7 +145,7 @@ public class SimpleSteve extends Player {
 		
 		double betRatio = (double)decisionContext.getNeededToCall() / decisionContext.getGameInfo().getPot(); 
 		double inverseBetRatio = 1 - betRatio;
-		if (true) return false;
+
 		if 	(confidenceLevel >= 100) return true;
 		
 		if (inverseBetRatio <= 0) {

@@ -28,8 +28,8 @@ public class DecisionContext {
 	
 	private void setGameInfo(HEGame _game) {
 		gameInfo = new PublicGameInfo(_game);
-		if (_game.getHand() != null && _game.getHand().getRound() != null) {
-			currentBet = _game.getHand().getRound().getCurrentBet();
+		if (_game != null) {
+			currentBet = _game.getCurrentBet();
 		} else {
 			currentBet = 0;
 		}

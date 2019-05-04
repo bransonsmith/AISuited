@@ -78,7 +78,7 @@ public abstract class HERound extends IEventer {
 			reactToDecision(decision);
 			state = null;
 			actingPosition = getNextPositionNumber(actingPosition);
-
+			
 		}
 	}
 	
@@ -109,7 +109,9 @@ public abstract class HERound extends IEventer {
 		
 		switch(decision.getType()) {
 		case Call:
-			amount = handleBet(actingSeat, decision.getAmount());
+			int amountToCall = currentBet - pot.getContributionsTotal(actingSeat);
+			amount = amountToCall;
+			amount = handleBet(actingSeat, amount);
 			actionString = "call " + amount + ".";
 			if (actingSeat.getHandStatus() == HandStatus.AllIn) {
 				actionString = "call and is ALL IN!";

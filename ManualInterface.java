@@ -46,13 +46,16 @@ public class ManualInterface {
 		
 		game.addObserver(display);
 		
+		game.playHand();
+		
+		/*
 		while (game.isNotComplete()) {
 			
 			kb.nextLine();
 			game.commenceNextEvent();
 			display.repaint();
 			
-		}
+		}*/
 		
 		kb.close();
 	}

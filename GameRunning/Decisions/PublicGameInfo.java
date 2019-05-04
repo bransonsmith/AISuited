@@ -29,13 +29,13 @@ public class PublicGameInfo {
 		buyIn = game.getOptions().getBuyIn();
 		
 		board = new ArrayList<Card>();
-		if (game.getHand() != null) {
-			if (game.getHand().getBoard() != null) {
-				for (Card c: game.getHand().getBoard()) {
+		if (game != null) {
+			if (game.getBoard() != null) {
+				for (Card c: game.getBoard()) {
 					board.add(new Card(c.getValue(), c.getSuit()));
 				}
 			}
-			pot = game.getHand().getPot().getTotal();
+			pot = game.getPot().getTotal();
 		} else {
 			pot = 0;
 		}
