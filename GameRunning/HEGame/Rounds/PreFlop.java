@@ -9,6 +9,10 @@ public class PreFlop extends HERound {
 
 	public PreFlop(HEHand _hand) throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		super(_hand);
+		Seat sbSeat = getSeatWithNumber(hand.getGame().getSBPosition());
+		Seat bbSeat = getSeatWithNumber(hand.getGame().getBBPosition());
+		pot.addContribution(sbSeat, hand.getGame().getOptions().getSb());
+		pot.addContribution(bbSeat, hand.getGame().getOptions().getBb());
 	}
 
 	@Override

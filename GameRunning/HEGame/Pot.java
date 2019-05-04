@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import GameRunning.Seat;
 import GameRunning.HEGame.Rounds.Rounds;
@@ -114,11 +116,24 @@ public class Pot {
 		str += "Pot Summary\n";
 		for (Map.Entry<Seat, Integer> contribution : contributions.entrySet()) {
 			str += String.format("| %-17s | %-8d |", ("" + contribution.getKey().getNumber() + ". " + contribution.getKey().getPlayerName()), contribution.getValue());
+			str += "\n";
 		}
 		
 		return str;
 	}
 
+	public int getMaxContribution() {
+		int max = 0;
+		for (Map.Entry<Seat, Integer> entry : contributions.entrySet()) {
+			max = Math.max(max, entry.getValue());
+		}
+		return max;
+	}
+	
+	public Set<Entry<Seat, Integer>> getEntries() {
+		return contributions.entrySet();
+	}
+	
 	public int getContributionsTotal(Seat s) {
 		if (contributions.containsKey(s)) {
 			return contributions.get(s);

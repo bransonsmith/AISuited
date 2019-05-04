@@ -96,8 +96,8 @@ public class HEHand extends IEventer {
 		}
 		
 		if (roundName.equals("pre flop")) {		
-			round = new Flop(this);
 			game.addMessage("Starting " + round.getName() + ".");
+			round = new Flop(this);
 		}
 		else if (roundName.equals("flop")) {
 			round = new Turn(this);

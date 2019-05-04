@@ -2,6 +2,7 @@ package GameRunning.HEGame.Rounds;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import Common.Logger;
 import GameObjects.Card;
@@ -27,7 +28,7 @@ public abstract class HERound extends IEventer {
 	protected boolean dealt;
 	private HEDecision decision;
 	private String state;
-	private Pot pot;
+	protected Pot pot;
 	
 	public HERound(HEHand _hand) throws Exception {
 		setHand(_hand);
@@ -52,8 +53,8 @@ public abstract class HERound extends IEventer {
 
 	@Override
 	public void commenceMyNextEvent() throws HandEvaluatorCardCountProblem, KickerFillProblem {
-		
 		HEGame game = hand.getGame();
+		game.addMessage("Round Event..." + name);
 		if (noPlayersUnsettled()) {
 			
 			game.addMessage("No Players Unsettled... The round is complete!");
@@ -77,7 +78,7 @@ public abstract class HERound extends IEventer {
 			reactToDecision(decision);
 			state = null;
 			actingPosition = getNextPositionNumber(actingPosition);
-			
+
 		}
 	}
 	
@@ -163,18 +164,18 @@ public abstract class HERound extends IEventer {
 		actingSeat.modChips(-1 * actualAmount);
 		pot.addContribution(actingSeat, actualAmount);
 		hand.getPot().addContribution(actingSeat, actualAmount);
+		Logger.log("------>" + actingSeat.getPlayerName() + " bet " + amount + " chips.");
+		currentBet = Math.max(actualAmount, currentBet);
+		currentBet = pot.getMaxContribution();
 		if (currentBet > currentBetBefore) {
 			unsettleOthers(actingSeat);
 		}
-		Logger.log("------>" + actingSeat.getPlayerName() + " bet " + amount + " chips.");
-		currentBet = Math.max(actualAmount, currentBet);
 		return actualAmount;
 	}
 
 	protected void unsettleOthers(Seat actingSeat) {
 		for (Seat s: seats) {
 			if (!s.equals(actingSeat) && 
-				s.getRoundStatus() == RoundStatus.Settled &&
 				s.getHandStatus() == HandStatus.Active) {
 				s.setRoundStatus(RoundStatus.Unsettled);
 			}
@@ -191,7 +192,7 @@ public abstract class HERound extends IEventer {
 		return seats.get(currentSeatIndex + 1).getNumber();
 	}
 
-	private Seat getSeatWithNumber(int seatNum) {
+	protected Seat getSeatWithNumber(int seatNum) {
 		for (Seat s: seats) {
 			if (s.getNumber() == seatNum) {
 				return s;

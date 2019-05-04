@@ -12,7 +12,7 @@ public class Colors {
 	public static Color MiddleText =  new Color(255, 247, 165);
 	public static Color Pot = new Color(255, 235, 50);
 	
-	public static Color SeatBackground = new Color(75, 120, 135);
+	public static Color SeatBackground = new Color(12, 12, 72);
 	public static Color SeatFolded = new Color(0, 10, 5);
 	public static Color SeatAllIn = new Color(180, 20, 0);
 	public static Color SeatActing = new Color(45, 80, 155);

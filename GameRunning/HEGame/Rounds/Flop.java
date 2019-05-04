@@ -27,7 +27,6 @@ public class Flop extends HERound {
 		} finally {
 			
 		}
-
 	}
 
 	@Override

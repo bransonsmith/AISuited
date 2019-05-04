@@ -20,7 +20,7 @@ public class SimpleSteve extends Player {
 	
 	public SimpleSteve(String _name, String ownerName) {
 		super(_name, ownerName);
-		callRate = .1;
+		callRate = .5;
 		raiseRate = .05;
 		confidenceLevel = 100.0;
 	}
@@ -142,10 +142,10 @@ public class SimpleSteve extends Player {
 	}
 
 	private boolean shouldRaise(DecisionContext decisionContext) {
-
+		
 		double betRatio = (double)decisionContext.getNeededToCall() / decisionContext.getGameInfo().getPot(); 
 		double inverseBetRatio = 1 - betRatio;
-
+		if (true) return false;
 		if 	(confidenceLevel >= 100) return true;
 		
 		if (inverseBetRatio <= 0) {

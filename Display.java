@@ -63,9 +63,32 @@ public class Display extends Canvas implements Observer {
 	        
 	        drawMiddleOfTable(g, new Coord(190, 200));
 	        drawMessageBoard(g, new Coord(200, 480));
+	        drawRoundPot(g, new Coord(200, 760));
 		} 
           
     }  
+
+	private void drawRoundPot(Graphics g, Coord c) {
+		if (game.getHand() != null &&
+			game.getHand().getRound() != null &&
+			game.getHand().getRound().getPot() != null) {
+			g.setColor(Colors.SeatText);
+			g.setFont(Fonts.playerText);
+			
+			String roundName = game.getHand().getRound().getName();
+			int drawHeight = c.y;
+			int lineHeight = (int)(g.getFont().getSize() * 1.5);
+			
+			g.drawString(roundName + " Pot Summary", c.x, drawHeight);
+			drawHeight += lineHeight;
+			
+			for (Map.Entry<Seat, Integer> entry : game.getHand().getRound().getPot().getEntries()) {
+				g.drawString(String.format("| %3s | %-17s | %-8d |", ("" + entry.getKey().getNumber() + ". "), entry.getKey().getPlayerName(), entry.getValue()), c.x, drawHeight);
+				drawHeight += lineHeight;
+			}
+		}
+		
+	}
 
 	private void drawMiddleOfTable(Graphics g, Coord c) {
 		int wd = 410;
