@@ -46,7 +46,7 @@ public class ManualInterface {
 		
 		game.addObserver(display);
 		
-		game.playHand();
+		game.playGame();
 		
 		/*
 		while (game.isNotComplete()) {

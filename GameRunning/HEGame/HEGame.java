@@ -62,14 +62,32 @@ public class HEGame extends Observable {
 		roundPot = new Pot();
 	}
 	
-	public void playHand() throws HandEvaluatorCardCountProblem, KickerFillProblem {
+	public void playGame() throws HandEvaluatorCardCountProblem, KickerFillProblem {
 		
-		messages.clear();
+		int handCount = 1;
+		Scanner kb = new Scanner(System.in);
+		while (getSeatsWithChips().size() > 1) {
+			messages.clear();
+			addMessage("Press Enter to play hand #" + handCount);
+			kb.nextLine();
+			playHand();
+			addMessage("Hand #" + handCount + " Complete!");
+			handCount++;
+			activateSeatsWithChipsBustThoseWithNone();
+			moveButtonAndBlinds();
+		}
+		addMessage("Game over! ");
+	}
+	
+	public synchronized void playHand() throws HandEvaluatorCardCountProblem, KickerFillProblem {
+		
+		boolean handComplete = false;
 		HEDecision decision = null;
 		String state = null;
 		pot = new Pot();
 		clearAllHands();
 		board = new ArrayList<Card>();
+		Scanner kb = new Scanner(System.in);
 		
 		Deck deck = new Deck();
 		deck.refresh();
@@ -84,176 +102,249 @@ public class HEGame extends Observable {
 
 		// Deal preflop
 		// Initialize Round
-		roundName = "Pre Flop";
-		for (Seat s: getSeatsWithChips()) {
-			if (s.getHandStatus() == HandStatus.Active) {
-				s.setRoundStatus(RoundStatus.Unsettled);
-			} else {
-				s.setRoundStatus(RoundStatus.Settled);
+		if (getHandParticipants().size() == 1) {
+			commenceShowDown(false);
+			setWinPercentages(winPercentages);
+			return;
+		}
+		
+		if (!handComplete) {
+			roundName = "Pre Flop";
+			for (Seat s: getSeatsWithChips()) {
+				if (s.getHandStatus() == HandStatus.Active) {
+					s.setRoundStatus(RoundStatus.Unsettled);
+				} else {
+					s.setRoundStatus(RoundStatus.Settled);
+				}
+			}
+			
+			// Betting Round
+			// (Collect Blinds to start betting round if pre flop)
+			roundPot = new Pot();
+			charge(getSBSeat(), options.getSb());
+			charge(getBBSeat(), options.getBb());
+			currentBet = options.getBb();
+			actingPosition = getUTGPosition();
+			kb .nextLine();
+			updateObservers();
+			while (!noPlayersUnsettled()) {
+				if (getHandParticipants().size() == 1) {
+					commenceShowDown(false);
+					setWinPercentages(null);
+					return;
+				}
+				if (!handComplete) {
+					if (state == null) {
+						decision = null;
+						while (decision == null) {
+							decision = getPlayerDecision();
+							if (decision == null) {
+								actingPosition = getNextPositionNumber(actingPosition);
+							}
+						}
+						state = "have answer";
+						
+					} else if (state.equals("have answer")) {
+						
+						reactToDecision(decision);
+						state = null;
+						actingPosition = getNextPositionNumber(actingPosition);
+						
+					}
+					kb.nextLine();
+					updateObservers();
+				}
 			}
 		}
 		
-		// Betting Round
-		// (Collect Blinds to start betting round if pre flop)
-		roundPot = new Pot();
-		charge(getSBSeat(), options.getSb());
-		charge(getBBSeat(), options.getBb());
-		currentBet = options.getBb();
-		actingPosition = getUTGPosition();
-		Scanner kb = new Scanner(System.in);
-		kb .nextLine();
-		updateObservers();
-		while (!noPlayersUnsettled()) {
-			if (state == null) {
-				decision = null;
-				while (decision == null) {
-					decision = getPlayerDecision();
-					if (decision == null) {
-						actingPosition = getNextPositionNumber(actingPosition);
-					}
+		
+		if (getHandParticipants().size() == 1) {
+			commenceShowDown(false);
+			setWinPercentages(null);
+			return;
+		}
+		
+		if (!handComplete) {
+			roundName = "Flop";
+			board.add(deck.getNextCard());
+			board.add(deck.getNextCard());
+			board.add(deck.getNextCard());
+			
+			List<WinPercent> winPercentages = WinPercentageCalculator.getWinPercents(getActiveSeats(), board);
+			setWinPercentages(winPercentages);
+			
+			for (Seat s: getSeatsWithChips()) {
+				if (s.getHandStatus() == HandStatus.Active) {
+					s.setRoundStatus(RoundStatus.Unsettled);
+				} else {
+					s.setRoundStatus(RoundStatus.Settled);
 				}
-				state = "have answer";
-				
-			} else if (state.equals("have answer")) {
-				
-				reactToDecision(decision);
-				state = null;
-				actingPosition = getNextPositionNumber(actingPosition);
-				
 			}
+			
+			// Betting Round
+			roundPot = new Pot();
+			currentBet = 0;
+			actingPosition = getSBPosition();
 			kb.nextLine();
 			updateObservers();
-		}
-		
-		roundName = "Flop";
-		board.add(deck.getNextCard());
-		board.add(deck.getNextCard());
-		board.add(deck.getNextCard());
-		
-		List<WinPercent> winPercentages = WinPercentageCalculator.getWinPercents(getActiveSeats(), board);
-		setWinPercentages(winPercentages);
-		
-		for (Seat s: getSeatsWithChips()) {
-			if (s.getHandStatus() == HandStatus.Active) {
-				s.setRoundStatus(RoundStatus.Unsettled);
-			} else {
-				s.setRoundStatus(RoundStatus.Settled);
-			}
-		}
-		
-		// Betting Round
-		roundPot = new Pot();
-		currentBet = 0;
-		actingPosition = getSBPosition();
-		kb.nextLine();
-		updateObservers();
-		while (!noPlayersUnsettled()) {
-			if (state == null) {
-				decision = null;
-				while (decision == null) {
-					decision = getPlayerDecision();
-					if (decision == null) {
-						actingPosition = getNextPositionNumber(actingPosition);
-					}
+			while (!noPlayersUnsettled()) {
+				if (getHandParticipants().size() == 1) {
+					commenceShowDown(false);
+					setWinPercentages(null);
+					return;
 				}
-				state = "have answer";
-				
-			} else if (state.equals("have answer")) {
-				
-				reactToDecision(decision);
-				state = null;
-				actingPosition = getNextPositionNumber(actingPosition);
-				
+				if (!handComplete) {
+					if (state == null) {
+						decision = null;
+						while (decision == null) {
+							decision = getPlayerDecision();
+							if (decision == null) {
+								actingPosition = getNextPositionNumber(actingPosition);
+							}
+						}
+						state = "have answer";
+						
+					} else if (state.equals("have answer")) {
+						
+						reactToDecision(decision);
+						state = null;
+						actingPosition = getNextPositionNumber(actingPosition);
+						
+					}
+					kb.nextLine();
+					updateObservers();
+				}
 			}
+		}
+		
+		
+		if (getHandParticipants().size() == 1) {
+			commenceShowDown(false);
+			setWinPercentages(null);
+			return;
+		}
+		
+		if (!handComplete) {
+			roundName = "Turn";
+			board.add(deck.getNextCard());
+			winPercentages = WinPercentageCalculator.getWinPercents(getActiveSeats(), board);
+			setWinPercentages(winPercentages);
+			for (Seat s: getSeatsWithChips()) {
+				if (s.getHandStatus() == HandStatus.Active) {
+					s.setRoundStatus(RoundStatus.Unsettled);
+				} else {
+					s.setRoundStatus(RoundStatus.Settled);
+				}
+			}
+			
+			// Betting Round
+			roundPot = new Pot();
+			currentBet = 0;
+			actingPosition = getSBPosition();
 			kb.nextLine();
 			updateObservers();
-		}
-		
-		roundName = "Turn";
-		board.add(deck.getNextCard());
-		winPercentages = WinPercentageCalculator.getWinPercents(getActiveSeats(), board);
-		setWinPercentages(winPercentages);
-		for (Seat s: getSeatsWithChips()) {
-			if (s.getHandStatus() == HandStatus.Active) {
-				s.setRoundStatus(RoundStatus.Unsettled);
-			} else {
-				s.setRoundStatus(RoundStatus.Settled);
-			}
-		}
-		
-		// Betting Round
-		roundPot = new Pot();
-		currentBet = 0;
-		actingPosition = getSBPosition();
-		kb.nextLine();
-		updateObservers();
-		while (!noPlayersUnsettled()) {
-			if (state == null) {
-				decision = null;
-				while (decision == null) {
-					decision = getPlayerDecision();
-					if (decision == null) {
-						actingPosition = getNextPositionNumber(actingPosition);
-					}
+			while (!noPlayersUnsettled()) {
+				if (getHandParticipants().size() == 1) {
+					commenceShowDown(false);
+					setWinPercentages(null);
+					return;
 				}
-				state = "have answer";
-				
-			} else if (state.equals("have answer")) {
-				
-				reactToDecision(decision);
-				state = null;
-				actingPosition = getNextPositionNumber(actingPosition);
-				
+				if (!handComplete) {
+					if (state == null) {
+						decision = null;
+						while (decision == null) {
+							decision = getPlayerDecision();
+							if (decision == null) {
+								actingPosition = getNextPositionNumber(actingPosition);
+							}
+						}
+						state = "have answer";
+						
+					} else if (state.equals("have answer")) {
+						
+						reactToDecision(decision);
+						state = null;
+						actingPosition = getNextPositionNumber(actingPosition);
+						
+					}
+					kb.nextLine();
+					updateObservers();
+				}
 			}
+		}
+		
+		
+		if (getHandParticipants().size() == 1) {
+			commenceShowDown(false);
+			setWinPercentages(null);
+			return;
+		}
+		
+		if (!handComplete) {
+			roundName = "River";
+			board.add(deck.getNextCard());
+			winPercentages = WinPercentageCalculator.getWinPercents(getActiveSeats(), board);
+			setWinPercentages(winPercentages);
+			for (Seat s: getSeatsWithChips()) {
+				if (s.getHandStatus() == HandStatus.Active) {
+					s.setRoundStatus(RoundStatus.Unsettled);
+				} else {
+					s.setRoundStatus(RoundStatus.Settled);
+				}
+			}
+			
+			// Betting Round
+			roundPot = new Pot();
+			currentBet = 0;
+			actingPosition = getSBPosition();
 			kb.nextLine();
 			updateObservers();
-		}
-		
-		roundName = "River";
-		board.add(deck.getNextCard());
-		winPercentages = WinPercentageCalculator.getWinPercents(getActiveSeats(), board);
-		setWinPercentages(winPercentages);
-		for (Seat s: getSeatsWithChips()) {
-			if (s.getHandStatus() == HandStatus.Active) {
-				s.setRoundStatus(RoundStatus.Unsettled);
-			} else {
-				s.setRoundStatus(RoundStatus.Settled);
-			}
-		}
-		
-		// Betting Round
-		roundPot = new Pot();
-		currentBet = 0;
-		actingPosition = getSBPosition();
-		kb.nextLine();
-		updateObservers();
-		while (!noPlayersUnsettled()) {
-			if (state == null) {
-				decision = null;
-				while (decision == null) {
-					decision = getPlayerDecision();
-					if (decision == null) {
-						actingPosition = getNextPositionNumber(actingPosition);
-					}
+			while (!noPlayersUnsettled()) {
+				if (getHandParticipants().size() == 1) {
+					commenceShowDown(false);
+					setWinPercentages(null);
+					return;
 				}
-				state = "have answer";
-				
-			} else if (state.equals("have answer")) {
-				
-				reactToDecision(decision);
-				state = null;
-				actingPosition = getNextPositionNumber(actingPosition);
-				
+				if (!handComplete) {
+					if (state == null) {
+						decision = null;
+						while (decision == null) {
+							decision = getPlayerDecision();
+							if (decision == null) {
+								actingPosition = getNextPositionNumber(actingPosition);
+							}
+						}
+						state = "have answer";
+						
+					} else if (state.equals("have answer")) {
+						
+						reactToDecision(decision);
+						state = null;
+						actingPosition = getNextPositionNumber(actingPosition);
+						
+					}
+					kb.nextLine();
+					updateObservers();
+				}
 			}
-			kb.nextLine();
-			updateObservers();
 		}
 		
+
+		setWinPercentages(null);
 		commenceShowDown(false);
-		activateSeatsWithChipsBustThoseWithNone();
-		moveButtonAndBlinds();
+		handComplete = true;
 	}
 	
+	private List<Seat> getHandParticipants() {
+		List<Seat> hps = new ArrayList<Seat>();
+		for (Seat s: seats) {
+			if (s.isActive()) {
+				hps.add(s);
+			}
+		}
+		return hps;
+	}
+
 	private void activateSeatsWithChipsBustThoseWithNone() {
 		for(Seat s: seats) {
 			if (s.getChips() > 0) {
@@ -265,7 +356,15 @@ public class HEGame extends Observable {
 		
 	}
 
-	public void commenceShowDown(boolean silentMode) throws HandEvaluatorCardCountProblem, KickerFillProblem {
+	public synchronized void commenceShowDown(boolean silentMode) throws HandEvaluatorCardCountProblem, KickerFillProblem {
+		
+		if (getHandParticipants().size() <= 1) {
+			int winnings = pot.getTotal();
+			addMessage(getHandParticipants().get(0).getPlayerName() + " won " + winnings + " chips! Well played.");
+			isComplete = true;
+			getHandParticipants().get(0).modChips(winnings);
+			return;
+		}
 		Map<HandEvaluation, List<Seat>> tieredHandEvaluations = getTieredHandEvaluations();
 		
 		if (!silentMode) {
@@ -393,7 +492,7 @@ public class HEGame extends Observable {
 		return seats.get(currentSeatIndex + 1).getNumber();
 	}
 
-	private HEDecision getPlayerDecision() throws HandEvaluatorCardCountProblem, KickerFillProblem {
+	private synchronized HEDecision getPlayerDecision() throws HandEvaluatorCardCountProblem, KickerFillProblem {
 		HEDecision decision = null;
 		Seat choiceMaker = getSeatWithNumber(actingPosition);
 		

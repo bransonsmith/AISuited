@@ -43,7 +43,7 @@ public class Display extends Canvas implements Observer {
 		theme.add(new Color(225, 25, 25));
 	}
 
-	public void paint(Graphics g) {  
+	public synchronized void paint(Graphics g) {  
 		g.setColor(Colors.Background);
 		g.fillRect(0, 0, 1000, 1000);
 		updateCount++;
@@ -62,7 +62,11 @@ public class Display extends Canvas implements Observer {
 	        }
 	        
 	        drawMiddleOfTable(g, new Coord(190, 200));
-	        drawMessageBoard(g, new Coord(200, 480));
+	        try {
+		        drawMessageBoard(g, new Coord(200, 480));
+	        } catch (Exception e) {
+	        	
+	        }
 	        drawRoundPot(g, new Coord(200, 760));
 		} 
           
@@ -337,7 +341,11 @@ public class Display extends Canvas implements Observer {
 		
 	}
 
-	private void drawMessageBoard(Graphics g, Coord c) {
+	private synchronized void drawMessageBoard(Graphics g, Coord c) {
+		
+		List<String> msgCopy = new ArrayList<String>();
+		msgCopy.addAll(game.getMessages());
+		
 		int wd = 385;
 		int ht = 120;
 		g.setColor(Colors.MessageBoardBackground);
@@ -348,8 +356,8 @@ public class Display extends Canvas implements Observer {
 		
 		g.setFont(Fonts.message);
 		g.setColor(Colors.MessageBoardText);
-		for (int i = 0; i < game.getMessages().size(); i++) {
-			g.drawString(game.getMessages().get(i), c.x + 2, c.y + 15 + (i * 15));
+		for (int i = 0; i < msgCopy.size(); i++) {
+			g.drawString(msgCopy.get(i), c.x + 2, c.y + 15 + (i * 15));
 		}
 		
 	}
