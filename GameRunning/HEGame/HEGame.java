@@ -12,13 +12,10 @@ import java.util.TreeMap;
 import Common.Logger;
 import GameObjects.Card;
 import GameObjects.Deck;
-import GameRunning.IEventer;
 import GameRunning.Seat;
 import GameRunning.Decisions.DecisionContext;
 import GameRunning.Decisions.HEDecision;
-import GameRunning.HEGame.Hands.HEHand;
 import GameRunning.HEGame.Hands.HandStatus;
-import GameRunning.HEGame.Rounds.HERound;
 import GameRunning.HEGame.Rounds.RoundStatus;
 import HandEvaluation.HandEvaluation;
 import HandEvaluation.HandEvaluator;
@@ -39,19 +36,18 @@ public class HEGame extends Observable {
 	private List<Card> board;
 	private List<String> messages;
 	protected boolean isComplete;
-	protected IEventer child;
 	private Pot pot;
 	private int currentBet;
 	private Pot roundPot;
 	protected int actingPosition;
 	private List<WinPercent> winPercentages;
 	private String roundName;
+	private boolean auto;
 	
 	public HEGame(List<Seat> _seats, HEOptions _options) throws Exception {
 		setOptions(new HEOptions(1000, 50, 100));
 		setSeats(_seats);
 		board = new ArrayList<Card>();
-		child = null;
 		isComplete = false;
 		if (seats.size() > 0) {
 			setRandomDealerAndBlinds();
@@ -60,6 +56,7 @@ public class HEGame extends Observable {
 		roundName = "";
 		pot = new Pot();
 		roundPot = new Pot();
+		setAuto(false);
 	}
 	
 	public void playGame() throws HandEvaluatorCardCountProblem, KickerFillProblem {
@@ -865,6 +862,14 @@ public class HEGame extends Observable {
 
 	public Pot getRoundPot() {
 		return roundPot;
+	}
+
+	public boolean isAuto() {
+		return auto;
+	}
+
+	public void setAuto(boolean auto) {
+		this.auto = auto;
 	}
 
 }

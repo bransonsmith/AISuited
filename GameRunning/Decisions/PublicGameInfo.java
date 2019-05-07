@@ -5,7 +5,6 @@ import java.util.List;
 
 import GameObjects.Card;
 import GameRunning.HEGame.HEGame;
-import GameRunning.HEGame.Rounds.HERound;
 
 public class PublicGameInfo {
 
@@ -16,7 +15,6 @@ public class PublicGameInfo {
 	private int sb;
 	private int buyIn;
 	private int pot;
-	private HERound round;
 	private List<Card> board;
 	
 	public PublicGameInfo(HEGame game) {
