@@ -15,9 +15,6 @@ public class ManualInterface {
 
 	public static void main(String[] args) throws Exception, HandEvaluatorCardCountProblem, KickerFillProblem {
 		
-		
-		Scanner kb = new Scanner(System.in);
-		
 		List<Player> players = new ArrayList<Player>();
 		players.add(new SimpleSteve("Branson", "Branson"));
 		players.add(new SimpleSteve("Trent", "Trent"));
@@ -40,23 +37,10 @@ public class ManualInterface {
 			seats.add(newSeat);
 		}
 		
-		
 		HEGame game = new HEGame(seats, options);
 		Display display = new Display(game); 
 		
 		game.addObserver(display);
-		
 		game.playGame();
-		
-		/*
-		while (game.isNotComplete()) {
-			
-			kb.nextLine();
-			game.commenceNextEvent();
-			display.repaint();
-			
-		}*/
-		
-		kb.close();
 	}
 }
