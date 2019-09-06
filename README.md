@@ -1,5 +1,5 @@
 # NLHEAI
-Pit Texas Hold Em AIs against each other
+Pit Texas Hold Em AIs against each other!!!
 
 Right now, only the hand evaluation logic is in place. Texas Hold Em game run to come...
 
