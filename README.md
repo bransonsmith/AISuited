@@ -1,5 +1,5 @@
 # NLHEAI
-Pit Texas Hold Em AIs against each other
+Pit Texas Hold Em AIs against each other!!!
 
 Pull down the code.
 You'll implement a Player. (Extend the abstract Player class).
